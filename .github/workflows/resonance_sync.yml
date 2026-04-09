@@ -1,13 +1,13 @@
-name: Celsius Deep History Sync
+name: Celsius Resonance Sync
 on:
   repository_dispatch:
     types: [activate_audit]
 
 jobs:
-  diagnostic_run:
+  diagnostic_process:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,18 +18,18 @@ jobs:
       - name: Install Dependencies
         run: pip install groq
 
-      - name: Run 586AD-2026 Deep Audit
+      - name: Run PRCE 586AD-2026 Engine
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           TARGET_NODE: ${{ github.event.client_payload.node }}
         run: python scripts/apex_engine.py
 
-      - name: Diagnostic Buffer (The 60s Trip)
+      - name: Diagnostic Resonance Buffer (60s)
         run: sleep 60
 
-      - name: Push to Celsius Media Command Center
+      - name: Push Data to WordPress Command Center
         run: |
-          curl -X POST "https://celsiusmediagroup.co.za/wp-json/uesp/v1/update" \
+          curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
           -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
           -H "Content-Type: application/json" \
           -d @data/resonance_output.json
