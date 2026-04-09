@@ -5,26 +5,25 @@ from groq import Groq
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def run_temporal_scan():
-    target_node = os.getenv("TARGET_NODE", "Global Infrastructure")
+def execute_scan():
+    # Use the node passed from WordPress
+    node = os.getenv("TARGET_NODE", "Global Infrastructure")
     
     prompt = f"""
-    [ACTIVATE UESP PRCE DYNAMIC SCAN]
-    NODE: {target_node}
+    [UESP PRCE REAL-TIME CALCULATION]
+    NODE: {node}
     YEAR: 2026
     
     INSTRUCTIONS:
-    1. Identify April 2026 frictions for '{target_node}'.
-    2. Scan the timeline back to 586 AD. 
-    3. Relate current issues to similar frictions found in the timeline.
-    4. Compute Dynamic Differential: Delta = |TTI - SHI|.
-    5. Generate the Overwrite Protocol.
+    1. Identify the primary 2026 friction for '{node}'.
+    2. Scan history back to 586 AD. 
+    3. Select ONLY historical frictions similar to the 2026 issue.
+    4. Calculate Dynamic Delta: |TTI - SHI|.
+    5. Formulate Deterministic Overwrite Protocol.
 
     OUTPUT JSON ONLY:
     {{
-      "node": "{target_node}",
-      "shi": float,
-      "tti": float,
+      "node": "{node}",
       "delta": float,
       "historical_relatives": [
         {{"year": "str", "event": "str", "correlation": "str"}}
@@ -33,22 +32,18 @@ def run_temporal_scan():
     }}
     """
     
-    try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        
-        data = json.loads(completion.choices[0].message.content)
-        data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        os.makedirs('data', exist_ok=True)
-        with open("data/resonance_output.json", "w") as f:
-            json.dump(data, f)
-            
-    except Exception as e:
-        print(f"Error: {e}")
+    completion = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    
+    audit_data = json.loads(completion.choices[0].message.content)
+    audit_data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    os.makedirs('data', exist_ok=True)
+    with open("data/resonance_output.json", "w") as f:
+        json.dump(audit_data, f)
 
 if __name__ == "__main__":
-    run_temporal_scan()
+    execute_scan()
