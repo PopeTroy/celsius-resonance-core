@@ -1,11 +1,10 @@
-name: Celsius Resonance Sync
+name: Celsius Deep History Sync
 on:
-  schedule:
-    - cron: '0 * * * *' # Every hour
-  workflow_dispatch:   # Manual Overwrite button
+  repository_dispatch:
+    types: [activate_audit]
 
 jobs:
-  build:
+  diagnostic_run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -19,15 +18,18 @@ jobs:
       - name: Install Dependencies
         run: pip install groq
 
-      - name: Run Apex Engine
+      - name: Run 586AD-2026 Deep Audit
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          TARGET_NODE: "Sasol Energy Grid" # Example Node
+          TARGET_NODE: ${{ github.event.client_payload.node }}
         run: python scripts/apex_engine.py
 
-      - name: Push to WordPress Terminal
+      - name: Diagnostic Buffer (The 60s Trip)
+        run: sleep 60
+
+      - name: Push to Celsius Media Command Center
         run: |
-          curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
+          curl -X POST "https://celsiusmediagroup.co.za/wp-json/uesp/v1/update" \
           -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
           -H "Content-Type: application/json" \
-          -d @data/latest_audit.json
+          -d @data/resonance_output.json
