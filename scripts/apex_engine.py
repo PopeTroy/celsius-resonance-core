@@ -3,49 +3,53 @@ import json
 import datetime
 from groq import Groq
 
-# Pulling directly from your Repository Secrets
+# Initialize Groq with your Repository Secret
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def deep_historical_audit():
-    # Targeted node passed from the trigger
+def run_celsius_audit():
     target_node = os.getenv("TARGET_NODE", "Global Infrastructure")
     
+    # Deterministic Prompt focusing on 586 AD to 2026
     prompt = f"""
     [ACTIVATE UESP PRCE DEEP SCAN]
     NODE: {target_node}
     TEMPORAL SCOPE: 586 AD to April 2026
     
-    TASKS:
-    1. Identify 586 AD Byzantine systemic friction.
+    REQUIRED ANALYSIS:
+    1. Scan 586 AD Byzantine systemic friction (Integrity vs Health).
     2. Identify 1880s Victorian industrial bottlenecks.
     3. Calculate April 2026 SHI (Health) and TTI (Integrity).
-    4. Provide the 18.52% Differential analysis.
-    5. Formulate the Deterministic Overwrite Protocol.
+    4. Apply the 18.52% Differential constant (|TTI - SHI|).
+    5. Formulate the Overwrite Protocol.
 
-    Output JSON only:
+    OUTPUT JSON FORMAT ONLY:
     {{
       "node": "{target_node}",
       "shi": float,
       "tti": float,
       "delta": float,
-      "history_sync": "str",
-      "protocol": "str"
+      "history_sync": "Summary of 586 AD to 2026 findings",
+      "protocol": "Deterministic industrial overwrite protocol"
     }}
     """
     
-    completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"}
-    )
-    
-    data = json.loads(completion.choices[0].message.content)
-    data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    # Ensuring the data folder exists for the workflow to find it
-    os.makedirs('data', exist_ok=True)
-    with open("data/resonance_output.json", "w") as f:
-        json.dump(data, f)
+    try:
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        audit_data = json.loads(completion.choices[0].message.content)
+        audit_data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Ensure directory exists for output
+        os.makedirs('data', exist_ok=True)
+        with open("data/resonance_output.json", "w") as f:
+            json.dump(audit_data, f)
+            
+    except Exception as e:
+        print(f"Audit Fracture: {str(e)}")
 
 if __name__ == "__main__":
-    deep_historical_audit()
+    run_celsius_audit()
