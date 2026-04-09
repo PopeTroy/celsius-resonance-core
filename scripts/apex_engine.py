@@ -3,33 +3,36 @@ import json
 import datetime
 from groq import Groq
 
-# Initialize Groq with your Repository Secret
+# Initialize Groq via Repository Secret
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def run_celsius_audit():
+def execute_temporal_audit():
+    # Identify the 2026 Node/Topic
     target_node = os.getenv("TARGET_NODE", "Global Infrastructure")
     
-    # Deterministic Prompt focusing on 586 AD to 2026
+    # The Deterministic Logic: Relate 2026 frictions to historical relatives since 586 AD
     prompt = f"""
-    [ACTIVATE UESP PRCE DEEP SCAN]
+    [UESP PRCE REAL-TIME SCAN]
     NODE: {target_node}
-    TEMPORAL SCOPE: 586 AD to April 2026
+    YEAR: 2026
     
-    REQUIRED ANALYSIS:
-    1. Scan 586 AD Byzantine systemic friction (Integrity vs Health).
-    2. Identify 1880s Victorian industrial bottlenecks.
-    3. Calculate April 2026 SHI (Health) and TTI (Integrity).
-    4. Apply the 18.52% Differential constant (|TTI - SHI|).
-    5. Formulate the Overwrite Protocol.
+    INSTRUCTIONS:
+    1. Identify the primary technical/systemic friction for '{target_node}' in April 2026.
+    2. Scan the timeline back to 586 AD. 
+    3. Extract ONLY historical events or frictions that are mathematically relative or similar to the 2026 issue.
+    4. Calculate the Dynamic Differential (Delta) between current Technical Integrity (TTI) and Systemic Health (SHI).
+    5. Generate a Deterministic Overwrite Protocol based on how those specific historical relatives were resolved.
 
-    OUTPUT JSON FORMAT ONLY:
+    STRICT JSON OUTPUT ONLY:
     {{
       "node": "{target_node}",
       "shi": float,
       "tti": float,
       "delta": float,
-      "history_sync": "Summary of 586 AD to 2026 findings",
-      "protocol": "Deterministic industrial overwrite protocol"
+      "historical_relatives": [
+        {{"year": "str", "event": "str", "correlation": "str"}}
+      ],
+      "protocol": "str"
     }}
     """
     
@@ -40,16 +43,17 @@ def run_celsius_audit():
             response_format={"type": "json_object"}
         )
         
+        # Parse and timestamp
         audit_data = json.loads(completion.choices[0].message.content)
         audit_data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        # Ensure directory exists for output
+        # Create data directory and save
         os.makedirs('data', exist_ok=True)
         with open("data/resonance_output.json", "w") as f:
             json.dump(audit_data, f)
             
     except Exception as e:
-        print(f"Audit Fracture: {str(e)}")
+        print(f"RESONANCE_FRACTURE: {str(e)}")
 
 if __name__ == "__main__":
-    run_celsius_audit()
+    execute_temporal_audit()
