@@ -1,0 +1,21 @@
+name: Live Resonance Sync
+on:
+  schedule:
+    - cron: '0 * * * *' # Every hour
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run PRCE Engine
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python apex_engine.py
+      - name: Push to WordPress
+        run: |
+          curl -X POST "${{ secrets.WP_API_URL }}/wp-json/uesp/v1/update" \
+          -H "Authorization: Bearer ${{ secrets.WP_JWT_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d @logs/latest.json
