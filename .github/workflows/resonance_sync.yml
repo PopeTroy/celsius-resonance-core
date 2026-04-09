@@ -1,0 +1,33 @@
+name: Celsius Resonance Sync
+on:
+  schedule:
+    - cron: '0 * * * *' # Every hour
+  workflow_dispatch:   # Manual Overwrite button
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install groq
+
+      - name: Run Apex Engine
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TARGET_NODE: "Sasol Energy Grid" # Example Node
+        run: python scripts/apex_engine.py
+
+      - name: Push to WordPress Terminal
+        run: |
+          curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
+          -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
+          -H "Content-Type: application/json" \
+          -d @data/latest_audit.json
