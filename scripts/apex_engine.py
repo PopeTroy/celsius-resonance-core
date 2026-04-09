@@ -1,39 +1,32 @@
-import os
-import json
-import datetime
+# apex_engine.py - REAL-TIME LIVE VERSION
+import os, json, datetime
 from groq import Groq
 
-# Initialize Groq Client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def execute_chrono_audit(node_name):
-    # Every search is a new entry with a unique timestamp
+def execute_fresh_audit(node):
+    # Precise timestamp for the new entry
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
+    # SYSTEM PROMPT: Zero-latency Groq calculation
     prompt = f"""
-    [ACTIVATE UESP PRCE APEX ENGINE]
-    TIMESTAMP: {timestamp}
-    TARGET NODE: {node_name}
+    [ACTIVATE LIVE UESP PRCE] 
+    TIME: {timestamp} | NODE: {node}
     
-    TASK:
-    1. Scan history from 586 AD (Byzantine) and the Victorian Industrial Era.
-    2. Align the current problems of '{node_name}' to these specific historical bottlenecks.
-    3. Calculate SHI (World Health) and TTI (Integrity) based on current 2026 data.
-    4. Provide the Differential (|TTI - SHI|).
-    5. Explain how history overcame this at a macro/industrial scale.
-    6. Provide a Deterministic Protocol for 2026.
-
-    OUTPUT ONLY VALID JSON:
-    {{
-      "timestamp": "{timestamp}",
-      "node": "{node_name}",
-      "shi": 23.15,
-      "tti": 41.67,
-      "delta": 18.52,
-      "timeline_match": "string",
-      "bottleneck_analysis": "string",
-      "historical_solution": "string",
-      "apex_protocol": "string"
+    INSTRUCTIONS:
+    1. Retrieve April 2026 Economic/Health Data for {node}.
+    2. Identify the recurring 586 AD and 1880s Industrial bottlenecks.
+    3. CALCULATE SHI (World Health) and TTI (Technical Integrity) FRESHLY.
+    4. CALCULATE the Differential Delta (|TTI - SHI|).
+    5. Output JSON ONLY: {{
+        "node": "{node}",
+        "timestamp": "{timestamp}",
+        "shi": float,
+        "tti": float,
+        "delta": float,
+        "history_sync": "string",
+        "industrial_macro": "string",
+        "explanation": "string"
     }}
     """
     
@@ -43,10 +36,3 @@ def execute_chrono_audit(node_name):
         response_format={"type": "json_object"}
     )
     return completion.choices[0].message.content
-
-# Set default to biggest bottleneck if no node provided
-target = os.getenv("TARGET_NODE", "Global Infrastructure Resonance")
-audit_result = execute_chrono_audit(target)
-
-with open("data/latest_audit.json", "w") as f:
-    f.write(audit_result)
