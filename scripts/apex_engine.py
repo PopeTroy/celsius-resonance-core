@@ -1,33 +1,23 @@
-# apex_engine.py - REAL-TIME LIVE VERSION
-import os, json, datetime
+import os, json, datetime, time
 from groq import Groq
 
+# The Engine Lock
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-def execute_fresh_audit(node):
-    # Precise timestamp for the new entry
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+def execute_prce_audit():
+    # Detect the node from environment variable (set by the GitHub Action)
+    target_node = os.getenv("TARGET_NODE", "Global Infrastructure")
     
-    # SYSTEM PROMPT: Zero-latency Groq calculation
+    # 60 Second Diagnostic Logic (Simulated for the 'Trip')
+    # The actual calculation happens via Groq LPU speed, but the result is held
+    
     prompt = f"""
-    [ACTIVATE LIVE UESP PRCE] 
-    TIME: {timestamp} | NODE: {node}
-    
-    INSTRUCTIONS:
-    1. Retrieve April 2026 Economic/Health Data for {node}.
-    2. Identify the recurring 586 AD and 1880s Industrial bottlenecks.
-    3. CALCULATE SHI (World Health) and TTI (Technical Integrity) FRESHLY.
-    4. CALCULATE the Differential Delta (|TTI - SHI|).
-    5. Output JSON ONLY: {{
-        "node": "{node}",
-        "timestamp": "{timestamp}",
-        "shi": float,
-        "tti": float,
-        "delta": float,
-        "history_sync": "string",
-        "industrial_macro": "string",
-        "explanation": "string"
-    }}
+    [NODE: {target_node}]
+    1. Scan history: 586 AD (Byzantine) and 1880s (Victorian).
+    2. Calculate FRESH April 2026 SHI and TTI.
+    3. Determine the Differential (Delta).
+    4. Provide the Deterministic Protocol for industrial overwrite.
+    Output JSON: {{"node": "str", "shi": float, "tti": float, "delta": float, "history": "str", "protocol": "str"}}
     """
     
     completion = client.chat.completions.create(
@@ -35,4 +25,12 @@ def execute_fresh_audit(node):
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"}
     )
-    return completion.choices[0].message.content
+    
+    result = json.loads(completion.choices[0].message.content)
+    result['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    with open("data/resonance_output.json", "w") as f:
+        json.dump(result, f)
+
+if __name__ == "__main__":
+    execute_prce_audit()
