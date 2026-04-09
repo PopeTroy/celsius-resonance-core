@@ -2,13 +2,13 @@ name: Celsius Resonance Sync
 
 on:
   repository_dispatch:
-    types: [activate_audit]
+    types: [activate_audit] # MUST match PHP event_type
 
 jobs:
-  run_audit:
+  dynamic_audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -19,16 +19,16 @@ jobs:
       - name: Install Dependencies
         run: pip install groq
 
-      - name: Execute Temporal Scan
+      - name: Run Temporal Audit Engine
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           TARGET_NODE: ${{ github.event.client_payload.node }}
         run: python scripts/apex_engine.py
 
-      - name: Diagnostic Buffer (60s)
+      - name: Diagnostic Trip (60s)
         run: sleep 60
 
-      - name: Push to WordPress
+      - name: Push Overwrite to WP
         run: |
           curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
           -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
