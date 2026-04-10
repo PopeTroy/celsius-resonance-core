@@ -1,35 +1,23 @@
 name: Celsius Resonance Sync
-
 on:
   repository_dispatch:
     types: [activate_audit]
 
 jobs:
-  dynamic_temporal_scan:
+  audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Groq
-        run: pip install groq
-
-      - name: Run PRCE Inference Engine
-        env:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: {python-version: '3.10'}
+      - run: pip install groq
+      - env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           TARGET_NODE: ${{ github.event.client_payload.node }}
+          SESSION_ID: ${{ github.event.client_payload.session_id }}
         run: python scripts/apex_engine.py
-
-      - name: Diagnostic Trip (60s Buffer)
-        run: sleep 60
-
-      - name: Return Data to Celsius WP
-        run: |
+      - run: sleep 60
+      - run: |
           curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
           -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
           -H "Content-Type: application/json" \
