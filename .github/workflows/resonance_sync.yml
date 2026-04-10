@@ -1,23 +1,47 @@
 name: Celsius Resonance Sync
+
 on:
   repository_dispatch:
     types: [activate_audit]
+  workflow_dispatch:
+    inputs:
+      node:
+        description: 'Manual Subject Injection'
+        required: true
+        default: 'Global Infrastructure'
+      session_id:
+        description: 'Manual Session ID'
+        required: false
+        default: 'manual_run_001'
 
 jobs:
-  audit:
+  prophetic_audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with: {python-version: '3.10'}
-      - run: pip install groq
-      - env:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Groq
+        run: pip install groq
+
+      - name: Execute Grand Prophetic Equation
+        env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          TARGET_NODE: ${{ github.event.client_payload.node }}
-          SESSION_ID: ${{ github.event.client_payload.session_id }}
+          # Logic: Use Dispatch input if manual, else use Repository payload
+          TARGET_NODE: ${{ github.event.inputs.node || github.event.client_payload.node }}
+          SESSION_ID: ${{ github.event.inputs.session_id || github.event.client_payload.session_id }}
         run: python scripts/apex_engine.py
-      - run: sleep 60
-      - run: |
+
+      - name: Resonance Buffer (60s)
+        run: sleep 60
+
+      - name: Push Overwrite to Celsius WP
+        run: |
           curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
           -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
           -H "Content-Type: application/json" \
