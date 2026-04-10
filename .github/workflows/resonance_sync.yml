@@ -6,41 +6,36 @@ on:
   workflow_dispatch:
     inputs:
       node:
-        description: 'Manual Subject Injection'
+        description: 'Subject Injection'
         required: true
         default: 'Global Infrastructure'
-      session_id:
-        description: 'Manual Session ID'
-        required: false
-        default: 'manual_run_001'
 
 jobs:
   prophetic_audit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # This was the blocked line
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v4 # This was the blocked line
         with:
           python-version: '3.10'
 
-      - name: Install Groq
+      - name: Install Dependencies
         run: pip install groq
 
-      - name: Execute Grand Prophetic Equation
+      - name: Execute PRCE Engine
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          # Logic: Use Dispatch input if manual, else use Repository payload
           TARGET_NODE: ${{ github.event.inputs.node || github.event.client_payload.node }}
-          SESSION_ID: ${{ github.event.inputs.session_id || github.event.client_payload.session_id }}
+          SESSION_ID: ${{ github.event.client_payload.session_id || 'manual_run' }}
         run: python scripts/apex_engine.py
 
-      - name: Resonance Buffer (60s)
+      - name: Buffer (60s)
         run: sleep 60
 
-      - name: Push Overwrite to Celsius WP
+      - name: Return Resonance
         run: |
           curl -X POST "${{ secrets.WP_URL }}/wp-json/uesp/v1/update" \
           -u "${{ secrets.WP_USER }}:${{ secrets.WP_APP_PASSWORD }}" \
