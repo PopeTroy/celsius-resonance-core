@@ -1,9 +1,13 @@
-import os, json, datetime
+import os
+import json
+import datetime
 from groq import Groq
 
+# Initialize Groq Client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def execute_scan():
+    # Retrieve parameters from GitHub Environment (passed from WordPress)
     node = os.getenv("TARGET_NODE", "Global Infrastructure")
     session_id = os.getenv("SESSION_ID", "manual_test")
     
@@ -33,18 +37,30 @@ def execute_scan():
     }}
     """
     
-    completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"}
-    )
-    
-    audit_data = json.loads(completion.choices[0].message.content)
-    audit_data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    os.makedirs('data', exist_ok=True)
-    with open("data/resonance_output.json", "w") as f:
-        json.dump(audit_data, f)
+    try:
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "system", "content": "You are the UESP Apex Engine. Output only valid JSON."},
+                      {"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        # Parse Groq's Response
+        audit_data = json.loads(completion.choices[0].message.content)
+        audit_data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        audit_data['session_id'] = session_id  # Ensure session ID is reflected
+        
+        # Save to a unique session file to prevent multi-user interference
+        os.makedirs('data', exist_ok=True)
+        filename = f"data/session_{session_id}.json"
+        
+        with open(filename, "w") as f:
+            json.dump(audit_data, f)
+            
+        print(f"SUCCESS: Audit complete for session {session_id}")
+        
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
 
 if __name__ == "__main__":
     execute_scan()
