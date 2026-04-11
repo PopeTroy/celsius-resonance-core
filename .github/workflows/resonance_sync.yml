@@ -38,8 +38,10 @@ jobs:
 
       - name: Return Resonance to WordPress
         run: |
-          # --http1.1 prevents the Exit Code 92 stream error
-          # --retry helps with intermittent connection drops
-          curl --http1.1 --retry 3 -X POST "https://your-wordpress-site.com/wp-json/uesp/v1/update" \
+          # Use --http1.1 to fix Code 92 and -L for redirects
+          # Adding a User-Agent often fixes Code 52 (Empty reply) from WP security
+          curl --http1.1 -L --retry 3 \
+          -A "UESP-Apex-Engine-Bot" \
+          -X POST "https://your-wordpress-site.com/wp-json/uesp/v1/update" \
           -H "Content-Type: application/json" \
           -d @data/resonance_output.json
