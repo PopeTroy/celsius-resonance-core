@@ -1,5 +1,4 @@
 name: Celsius Resonance Sync
-
 on:
   repository_dispatch:
     types: [activate_audit]
@@ -16,32 +15,22 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Dependencies
+      - name: Install Groq
         run: pip install groq
 
-      - name: Execute PRCE Engine
+      - name: Execute Superman Engine
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           TARGET_NODE: ${{ github.event.client_payload.node }}
           SESSION_ID: ${{ github.event.client_payload.session_id }}
         run: python scripts/apex_engine.py
 
-      - name: Commit & Push Session Data
+      - name: Push Calculated Data
         run: |
           git config --global user.name "UESP-Bot"
           git config --global user.email "bot@celsiusmediagroup.co.za"
           git add data/*.json
-          git commit -m "Audit Data: ${{ github.event.client_payload.session_id }}"
+          git commit -m "Calculated Audit: ${{ github.event.client_payload.session_id }}"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Return Resonance to WordPress
-        run: |
-          # Use --http1.1 to fix Code 92 and -L for redirects
-          # Adding a User-Agent often fixes Code 52 (Empty reply) from WP security
-          curl --http1.1 -L --retry 3 \
-          -A "UESP-Apex-Engine-Bot" \
-          -X POST "https://your-wordpress-site.com/wp-json/uesp/v1/update" \
-          -H "Content-Type: application/json" \
-          -d @data/resonance_output.json
