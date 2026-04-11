@@ -29,15 +29,17 @@ jobs:
       - name: Commit & Push Session Data
         run: |
           git config --global user.name "UESP-Bot"
-          git config --global user.email "bot@celsius.tech"
+          git config --global user.email "bot@celsiusmediagroup.co.za"
           git add data/*.json
           git commit -m "Audit Data: ${{ github.event.client_payload.session_id }}"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Return Resonance
+      - name: Return Resonance to WordPress
         run: |
-          curl -X POST "https://your-wordpress-site.com/wp-json/uesp/v1/update" \
+          # --http1.1 prevents the Exit Code 92 stream error
+          # --retry helps with intermittent connection drops
+          curl --http1.1 --retry 3 -X POST "https://your-wordpress-site.com/wp-json/uesp/v1/update" \
           -H "Content-Type: application/json" \
           -d @data/resonance_output.json
