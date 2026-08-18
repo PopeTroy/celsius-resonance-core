@@ -5,18 +5,43 @@ from groq import Groq
 from openai import OpenAI
 
 def get_groq_completion(prompt):
-    """Executes inference via Groq LPU pipeline."""
+    """Executes inference via Groq LPU pipeline using Groq Compound architecture."""
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    
+    # Utilizing Groq Compound model pipeline
     completion = client.chat.completions.create(
-        model="llama-3.3-70b-specdec",
+        model="groq/compound",
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP Apex Engine. You perform live systemic audits "
-                    "integrating high-concurrency neural logic, divine ocular analytics, "
-                    "and Shinobi tactical matrices. Never use static figures; calculate "
-                    "everything dynamically based on the input node."
+                    "You are the UESP Apex Engine powered by Groq Compound architecture. "
+                    "You perform live systemic audits integrating high-concurrency neural logic, "
+                    "divine ocular analytics, and Shinobi tactical matrices. Never use static figures; "
+                    "calculate everything dynamically based on the input node."
+                )
+            },
+            {"role": "user", "content": prompt}
+        ],
+        response_format={"type": "json_object"}
+    )
+    return completion.choices[0].message.content
+
+def get_chatgpt_oss_completion(prompt):
+    """Fallback / High-Precision inference via ChatGPT OSS / OpenAI Endpoint."""
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY")
+    )
+    
+    # Utilizing ChatGPT OSS / OpenAI open model series
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are the UESP Apex Engine utilizing ChatGPT OSS architecture. "
+                    "You execute deep neural-tactical systemic audits. Always output strict JSON."
                 )
             },
             {"role": "user", "content": prompt}
@@ -26,7 +51,7 @@ def get_groq_completion(prompt):
     return completion.choices[0].message.content
 
 def get_nvidia_nim_completion(prompt):
-    """Fallback / High-Throughput inference via NVIDIA NIM Microservices."""
+    """Secondary Fallback via NVIDIA NIM Microservices."""
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=os.environ.get("NVIDIA_API_KEY")
@@ -84,12 +109,17 @@ def execute_scan():
     }}
     """
     
-    # Dual-Engine Fallback Logic: Primary Groq -> Fallback NVIDIA NIM
+    # Multi-Engine Fallback Cascade: Groq Compound -> ChatGPT OSS -> NVIDIA NIM
+    raw_output = None
     try:
         raw_output = get_groq_completion(prompt)
     except Exception as groq_err:
-        print(f"[WARN] Groq Engine failure ({groq_err}). Rerouting to NVIDIA NIM Microservices...")
-        raw_output = get_nvidia_nim_completion(prompt)
+        print(f"[WARN] Groq Compound Engine failure ({groq_err}). Rerouting to ChatGPT OSS pipeline...")
+        try:
+            raw_output = get_chatgpt_oss_completion(prompt)
+        except Exception as oss_err:
+            print(f"[WARN] ChatGPT OSS failure ({oss_err}). Rerouting to NVIDIA NIM Microservices...")
+            raw_output = get_nvidia_nim_completion(prompt)
     
     data = json.loads(raw_output)
     data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
