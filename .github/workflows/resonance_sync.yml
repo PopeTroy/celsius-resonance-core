@@ -15,8 +15,8 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Groq
-        run: pip install groq
+      - name: Install Dependencies
+        run: pip install groq openai
 
       - name: Execute Superman Engine
         env:
