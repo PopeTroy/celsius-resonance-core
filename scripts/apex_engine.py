@@ -27,6 +27,16 @@ def get_nvidia_nim_completion(prompt, model_name):
     )
     return completion.choices[0].message.content
 
+def get_active_non_llama_models(client):
+    """Dynamically retrieves live non-Llama model identifiers from NVIDIA NIM."""
+    try:
+        models_page = client.models.list()
+        active_ids = [m.id for m in models_page.data if "llama" not in m.id.lower()]
+        return active_ids
+    except Exception as e:
+        print(f"[WARN] Could not auto-fetch active models: {e}")
+        return []
+
 def execute_scan():
     node = os.getenv("TARGET_NODE", "Global Infrastructure")
     session_id = os.getenv("SESSION_ID", "manual_test")
@@ -64,12 +74,24 @@ def execute_scan():
     }}
     """
     
-    # NVIDIA NIM Multi-Model Cascade Strategy (No Llama / OpenAI dependencies)
+    # Primary candidate models (Non-Llama enterprise models)
     nim_models = [
-        "nvidia/nemotron-4-340b-instruct",  # Primary: Nemotron Super Engine
-        "deepseek-ai/deepseek-r1"           # Secondary: DeepSeek Reasoning Engine
+        "mistralai/mistral-nemotron",
+        "mistralai/mistral-large-2-instruct",
+        "google/gemma-2-27b-it",
+        "qwen/qwen2.5-72b-instruct"
     ]
     
+    # Fetch live active endpoints to supplement fallback cascade
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=os.environ.get("NVIDIA_API_KEY")
+    )
+    live_models = get_active_non_llama_models(client)
+    for model_id in live_models:
+        if model_id not in nim_models:
+            nim_models.append(model_id)
+
     raw_output = None
     for model in nim_models:
         try:
