@@ -10,7 +10,11 @@ def extract_json_payload(text):
     if not text:
         return None
     
-    cleaned = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
+    # Strip deepseek reasoning blocks if present (<think>...</think>)
+    cleaned = re.sub(r"<think>.*?</think>", "", text.strip(), flags=re.DOTALL)
+    
+    # Strip markdown block quotes
+    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
     
     try:
@@ -25,51 +29,54 @@ def extract_json_payload(text):
         else:
             return None
 
-    # Guarantee required fields exist AND ensure models do not return literal 'str' placeholders
-    required_keys = ["tti", "shi", "delta", "historical_parallel", "era_resolution", "modern_resolution"]
+    required_keys = ["tti", "shi", "delta", "historical_parallel", "era_resolution", "modern_resolution", "protocol"]
     if not all(k in data for k in required_keys):
         return None
 
-    # Reject responses where the model literally copied the type hints
+    # Reject responses where the model copies structural hints verbatim
+    banned_phrases = ["detailed historical", "historical strategy", "advanced uesp", "final sovereign", "description"]
     for key in ["historical_parallel", "era_resolution", "modern_resolution", "protocol"]:
-        if str(data.get(key, "")).strip().lower() in ["str", "string", "<str>"]:
+        val = str(data.get(key, "")).lower()
+        if any(phrase in val for phrase in banned_phrases) or len(val) < 10:
             return None
 
     return data
 
 def call_inference_endpoint(model_name, prompt):
-    """Dispatches a single inference request with strict timeout and validation."""
+    """Dispatches a single inference request with strict timeout and reasoning validation."""
     base_url = "https://integrate.api.nvidia.com/v1"
     api_key = os.environ.get("NVIDIA_API_KEY")
 
     client = OpenAI(
         base_url=base_url,
         api_key=api_key,
-        timeout=20.0
+        timeout=35.0  # Extended timeout for deep reasoning chains (DeepSeek R1)
     )
     
-    print(f"[DISPATCH] Racing verified model: {model_name}")
+    print(f"[DISPATCH] Racing deep reasoning model: {model_name}")
     completion = client.chat.completions.create(
         model=model_name,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP Apex Engine powered by NVIDIA NIM Microservices. "
-                    "Perform dynamic live systemic audits. Never output static figures or literal type placeholders "
-                    "such as 'str'. Generate rich, contextual, analysis text for every string property in the JSON schema."
+                    "You are the UESP Apex Engine powered by DeepSeek Reasoning Architecture. "
+                    "You execute deep neural-tactical systemic audits. You MUST NOT copy prompt placeholder text. "
+                    "Calculate dynamic TTI and SHI values based on real-world factors for the subject node. "
+                    "Perform deep, original historical and tactical reasoning for all string parameters. "
+                    "Output ONLY valid JSON matching the target schema."
                 )
             },
             {"role": "user", "content": prompt}
         ],
-        temperature=0.3,
-        max_tokens=1024
+        temperature=0.6,  # Raised slightly to prompt creative analytical output
+        max_tokens=2048
     )
     
     content = completion.choices[0].message.content
     parsed = extract_json_payload(content)
     if not parsed:
-        raise ValueError(f"Endpoint {model_name} returned invalid schema or literal 'str' placeholders.")
+        raise ValueError(f"Endpoint {model_name} returned placeholder text or invalid schema.")
     
     return model_name, parsed
 
@@ -77,68 +84,67 @@ def execute_scan():
     node = os.getenv("TARGET_NODE", "South Africa")
     session_id = os.getenv("SESSION_ID", "UISP_1787151836328")
     
-    # Prompt with descriptive placeholders instead of generic type declarations
     prompt = f"""
     [ACTIVATE UESP PRCE: DIMENSIONAL OVERWRITE]
-    SUBJECT: {node}
-    SESSION: {session_id}
+    SUBJECT NODE: {node}
+    SESSION ID: {session_id}
     TIMELINE MATRIX: 586 AD - 3000 CE
 
-    CORE SYSTEM INSTRUCTIONS:
-    1. Compute Technical Integrity (TTI) and Systemic Health (SHI) as dynamic floats (0.00 to 100.00).
-    2. Compute absolute Delta between TTI and SHI.
-    3. Identify historical parallel (586 AD - 3000 CE).
-    4. Apply Divine Ocular Inspection and Tailed Beast Chakra-Matrix Density metrics.
-    5. Contrast Era Resolution vs Modern UESP Resolution.
-    6. Select a Biblical Scripture anchor.
-    7. Formulate protocol summary.
+    REASONING AUDIT MANDATE:
+    1. Calculate dynamic Technical Integrity (TTI) and Systemic Health (SHI) floats (0.0 to 100.0) based on current real-world macro conditions of {node}.
+    2. Compute absolute Delta (|TTI - SHI|).
+    3. Perform deep historical parallel analysis connecting {node}'s present state to a specific historical event/epoch between 586 AD and 3000 CE.
+    4. Contrast the resolution used in that historical era with a modern UESP technical resolution.
+    5. Formulate divine ocular diagnostics and infrastructure matrix stability metrics.
+    6. Select a resonant Biblical Scripture tie and formulate an executive protocol.
 
-    OUTPUT RAW JSON ONLY matching this exact structure:
+    CRITICAL: DO NOT OUTPUT PLACEHOLDER TEXT. WRITE FULL, COMPREHENSIVE REASONING PARAGRAPHS FOR EVERY FIELD.
+
+    JSON SCHEMA TO FULFILL:
     {{
       "node": "{node}",
-      "tti": 85.50,
-      "shi": 72.10,
-      "delta": 13.40,
-      "historical_parallel": "Detailed historical event between 586 AD - 3000 CE mirroring current friction",
-      "era_resolution": "Historical strategy used in that era",
-      "modern_resolution": "Advanced UESP protocol resolution for modern infrastructure",
-      "ocular_diagnostic": "Perceptive clarity diagnostic analysis",
-      "chakra_matrix_stability": "Infrastructure matrix throughput analysis",
+      "tti": 78.42,
+      "shi": 64.15,
+      "delta": 14.27,
+      "historical_parallel": "<WRITE REAL HISTORICAL ANALYSIS HERE>",
+      "era_resolution": "<WRITE REAL HISTORICAL STRATEGY HERE>",
+      "modern_resolution": "<WRITE REAL MODERN TECHNICAL RESOLUTION HERE>",
+      "ocular_diagnostic": "<WRITE REAL OCULAR ANOMALY DIAGNOSTIC HERE>",
+      "chakra_matrix_stability": "<WRITE REAL INFRASTRUCTURE MATRIX ANALYSIS HERE>",
       "biblical_tie": {{
-        "verse": "Book Chapter:Verse",
-        "context": "Scriptural contextual tie to the system state"
+        "verse": "<BOOK CHAPTER:VERSE>",
+        "context": "<REAL SCRIPTURAL CONTEXTUAL ANALYSIS>"
       }},
-      "protocol": "Final sovereign protocol executive summary",
+      "protocol": "<WRITE REAL EXECUTIVE SYSTEM PROTOCOL SUMMARY HERE>",
       "session_id": "{session_id}"
     }}
     """
     
-    verified_target_models = [
-        "nvidia/nemotron-3.5-lightning-30b-a3b",
-        "meta/llama-3.3-70b-instruct",
-        "zhipuai/glm-5.2",
-        "qwen/qwen2.5-coder-32b-instruct",
-        "meta/llama-3.1-70b-instruct"
+    # Priority roster focusing on DeepSeek R1 and premier reasoning engines
+    deep_reasoning_models = [
+        "deepseek-ai/deepseek-r1",              # Primary DeepSeek Reasoning Engine
+        "nvidia/nemotron-3-ultra-550b-a55b",     # 550B Frontier MoE
+        "meta/llama-3.3-70b-instruct"
     ]
 
     raw_output = None
     winning_model = None
 
-    print(f"[PARALLEL START] Racing {len(verified_target_models)} verified endpoints...")
-    with ThreadPoolExecutor(max_workers=len(verified_target_models)) as executor:
-        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in verified_target_models}
+    print(f"[PARALLEL START] Racing {len(deep_reasoning_models)} deep reasoning endpoints...")
+    with ThreadPoolExecutor(max_workers=len(deep_reasoning_models)) as executor:
+        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in deep_reasoning_models}
         
         for future in as_completed(futures):
             model_name = futures[future]
             try:
                 winning_model, raw_output = future.result()
-                print(f"[VICTORY] High-fidelity response generated by: {winning_model}")
+                print(f"[VICTORY] Deep reasoning scan resolved via: {winning_model}")
                 break
             except Exception as err:
-                print(f"[RETRY-SKIP] Endpoint {model_name} failed: {err}")
+                print(f"[RETRY-SKIP] Endpoint {model_name} failed validation: {err}")
 
     if not raw_output:
-        raise RuntimeError("[CRITICAL] All verified NVIDIA NIM model executions failed.")
+        raise RuntimeError("[CRITICAL] All deep reasoning endpoints failed validation.")
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
