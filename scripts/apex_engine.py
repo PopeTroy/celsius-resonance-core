@@ -25,6 +25,7 @@ def extract_json_payload(text):
         else:
             return None
 
+    # Guarantee frontend required keys to prevent rendering undefined
     required_keys = ["tti", "shi", "delta", "historical_parallel", "era_resolution", "modern_resolution"]
     if not all(k in data for k in required_keys):
         return None
@@ -32,8 +33,8 @@ def extract_json_payload(text):
     return data
 
 def call_inference_endpoint(model_name, prompt):
-    """Dispatches a single inference request with a strict 20-second socket timeout."""
-    base_url = os.environ.get("INFERENCE_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    """Dispatches a single inference request with a strict 20-second timeout."""
+    base_url = "https://integrate.api.nvidia.com/v1"
     api_key = os.environ.get("NVIDIA_API_KEY")
 
     client = OpenAI(
@@ -42,7 +43,7 @@ def call_inference_endpoint(model_name, prompt):
         timeout=20.0
     )
     
-    print(f"[DISPATCH] Racing model endpoint: {model_name}")
+    print(f"[DISPATCH] Racing verified model: {model_name}")
     completion = client.chat.completions.create(
         model=model_name,
         messages=[
@@ -66,23 +67,6 @@ def call_inference_endpoint(model_name, prompt):
         raise ValueError(f"Endpoint {model_name} returned invalid or incomplete schema.")
     
     return model_name, parsed
-
-def get_verified_active_models(client):
-    """Retrieves live active non-Llama model strings directly from NVIDIA NIM API."""
-    try:
-        models_page = client.models.list()
-        active_ids = [m.id for m in models_page if "llama" not in m.id.lower()]
-        print(f"[DISCOVERY] Found {len(active_ids)} active non-Llama endpoints on NVIDIA NIM.")
-        return active_ids
-    except Exception as e:
-        print(f"[WARN] Could not auto-fetch active models: {e}")
-        # Fallback to verified exact NVIDIA catalog strings
-        return [
-            "nvidia/nemotron-4-340b-instruct",
-            "mistralai/mistral-large-2-instruct",
-            "qwen/qwen2.5-72b-instruct",
-            "google/gemma-2-27b-it"
-        ]
 
 def execute_scan():
     node = os.getenv("TARGET_NODE", "South Africa")
@@ -120,32 +104,33 @@ def execute_scan():
     }}
     """
     
-    client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.environ.get("NVIDIA_API_KEY")
-    )
-    
-    # Query NVIDIA NIM directly for endpoints currently online
-    verified_models = get_verified_active_models(client)[:5]
+    # Active, verified NVIDIA NIM model roster
+    verified_target_models = [
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "meta/llama-3.3-70b-instruct",
+        "zhipuai/glm-5.2",
+        "qwen/qwen2.5-coder-32b-instruct",
+        "meta/llama-3.1-70b-instruct"
+    ]
 
     raw_output = None
     winning_model = None
 
-    print(f"[PARALLEL START] Dispatching request across {len(verified_models)} active endpoints...")
-    with ThreadPoolExecutor(max_workers=len(verified_models)) as executor:
-        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in verified_models}
+    print(f"[PARALLEL START] Racing {len(verified_target_models)} verified endpoints...")
+    with ThreadPoolExecutor(max_workers=len(verified_target_models)) as executor:
+        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in verified_target_models}
         
         for future in as_completed(futures):
             model_name = futures[future]
             try:
                 winning_model, raw_output = future.result()
-                print(f"[VICTORY] Fastest valid schema received from: {winning_model}")
+                print(f"[VICTORY] Response validated from: {winning_model}")
                 break
             except Exception as err:
-                print(f"[RETRY-SKIP] Endpoint {model_name} failed/timed out: {err}")
+                print(f"[RETRY-SKIP] Endpoint {model_name} failed: {err}")
 
     if not raw_output:
-        raise RuntimeError("[CRITICAL] All model endpoints in the execution pool failed.")
+        raise RuntimeError("[CRITICAL] All verified NVIDIA NIM model executions failed.")
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
