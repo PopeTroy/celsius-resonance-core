@@ -1,69 +1,24 @@
 import os
 import json
 import datetime
-from groq import Groq
 from openai import OpenAI
 
-def get_groq_completion(prompt):
-    """Executes inference via Groq LPU pipeline using Groq Compound architecture."""
-    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-    
-    # Utilizing Groq Compound model pipeline
-    completion = client.chat.completions.create(
-        model="groq/compound",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are the UESP Apex Engine powered by Groq Compound architecture. "
-                    "You perform live systemic audits integrating high-concurrency neural logic, "
-                    "divine ocular analytics, and Shinobi tactical matrices. Never use static figures; "
-                    "calculate everything dynamically based on the input node."
-                )
-            },
-            {"role": "user", "content": prompt}
-        ],
-        response_format={"type": "json_object"}
-    )
-    return completion.choices[0].message.content
-
-def get_chatgpt_oss_completion(prompt):
-    """Fallback / High-Precision inference via ChatGPT OSS / OpenAI Endpoint."""
-    client = OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY")
-    )
-    
-    # Utilizing ChatGPT OSS / OpenAI open model series
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are the UESP Apex Engine utilizing ChatGPT OSS architecture. "
-                    "You execute deep neural-tactical systemic audits. Always output strict JSON."
-                )
-            },
-            {"role": "user", "content": prompt}
-        ],
-        response_format={"type": "json_object"}
-    )
-    return completion.choices[0].message.content
-
-def get_nvidia_nim_completion(prompt):
-    """Secondary Fallback via NVIDIA NIM Microservices."""
+def get_nvidia_nim_completion(prompt, model_name):
+    """Executes inference via specified NVIDIA NIM Microservices model."""
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=os.environ.get("NVIDIA_API_KEY")
     )
     completion = client.chat.completions.create(
-        model="meta/llama-3.3-70b-instruct",
+        model=model_name,
         messages=[
             {
                 "role": "system",
                 "content": (
                     "You are the UESP Apex Engine powered by NVIDIA NIM Microservices. "
-                    "You execute deep neural-tactical systemic audits. Always output strict JSON."
+                    "You perform live systemic audits integrating high-concurrency neural logic, "
+                    "divine ocular analytics, and Shinobi tactical matrices. Never use static figures; "
+                    "calculate everything dynamically based on the input node. Always output strict JSON."
                 )
             },
             {"role": "user", "content": prompt}
@@ -76,7 +31,7 @@ def execute_scan():
     node = os.getenv("TARGET_NODE", "Global Infrastructure")
     session_id = os.getenv("SESSION_ID", "manual_test")
     
-    # FORCING LIVE CALCULATION: Dynamic Timeline (586 AD - 3000 CE)
+    # Dynamic Timeline Matrix (586 AD - 3000 CE)
     prompt = f"""
     [ACTIVATE UESP PRCE: DIMENSIONAL OVERWRITE]
     SUBJECT: {node}
@@ -109,18 +64,25 @@ def execute_scan():
     }}
     """
     
-    # Multi-Engine Fallback Cascade: Groq Compound -> ChatGPT OSS -> NVIDIA NIM
-    raw_output = None
-    try:
-        raw_output = get_groq_completion(prompt)
-    except Exception as groq_err:
-        print(f"[WARN] Groq Compound Engine failure ({groq_err}). Rerouting to ChatGPT OSS pipeline...")
-        try:
-            raw_output = get_chatgpt_oss_completion(prompt)
-        except Exception as oss_err:
-            print(f"[WARN] ChatGPT OSS failure ({oss_err}). Rerouting to NVIDIA NIM Microservices...")
-            raw_output = get_nvidia_nim_completion(prompt)
+    # NVIDIA NIM Multi-Model Cascade Strategy (No Llama / OpenAI dependencies)
+    nim_models = [
+        "nvidia/nemotron-4-340b-instruct",  # Primary: Nemotron Super Engine
+        "deepseek-ai/deepseek-r1"           # Secondary: DeepSeek Reasoning Engine
+    ]
     
+    raw_output = None
+    for model in nim_models:
+        try:
+            print(f"[INFO] Executing audit via NVIDIA NIM Model: {model}")
+            raw_output = get_nvidia_nim_completion(prompt, model)
+            if raw_output:
+                break
+        except Exception as err:
+            print(f"[WARN] NVIDIA NIM Model ({model}) failure: {err}. Triaging to next model...")
+
+    if not raw_output:
+        raise RuntimeError("[CRITICAL] All NVIDIA NIM multi-model executions failed.")
+
     data = json.loads(raw_output)
     data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
