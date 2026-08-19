@@ -10,7 +10,6 @@ def extract_json_payload(text):
     if not text:
         return None
     
-    # Strip markdown block quotes
     cleaned = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
     
@@ -26,7 +25,6 @@ def extract_json_payload(text):
         else:
             return None
 
-    # Strict key validation to prevent UI 'undefined' errors
     required_keys = ["tti", "shi", "delta", "historical_parallel", "era_resolution", "modern_resolution"]
     if not all(k in data for k in required_keys):
         return None
@@ -34,14 +32,14 @@ def extract_json_payload(text):
     return data
 
 def call_inference_endpoint(model_name, prompt):
-    """Dispatches a single inference request with strict 12-second socket timeout."""
+    """Dispatches a single inference request with a strict 20-second socket timeout."""
     base_url = os.environ.get("INFERENCE_BASE_URL", "https://integrate.api.nvidia.com/v1")
-    api_key = os.environ.get("HYPERBOLIC_API_KEY", os.environ.get("NVIDIA_API_KEY"))
+    api_key = os.environ.get("NVIDIA_API_KEY")
 
     client = OpenAI(
         base_url=base_url,
         api_key=api_key,
-        timeout=12.0  # Hard deadline to prevent API queuing stalls
+        timeout=20.0
     )
     
     print(f"[DISPATCH] Racing model endpoint: {model_name}")
@@ -69,9 +67,26 @@ def call_inference_endpoint(model_name, prompt):
     
     return model_name, parsed
 
+def get_verified_active_models(client):
+    """Retrieves live active non-Llama model strings directly from NVIDIA NIM API."""
+    try:
+        models_page = client.models.list()
+        active_ids = [m.id for m in models_page if "llama" not in m.id.lower()]
+        print(f"[DISCOVERY] Found {len(active_ids)} active non-Llama endpoints on NVIDIA NIM.")
+        return active_ids
+    except Exception as e:
+        print(f"[WARN] Could not auto-fetch active models: {e}")
+        # Fallback to verified exact NVIDIA catalog strings
+        return [
+            "nvidia/nemotron-4-340b-instruct",
+            "mistralai/mistral-large-2-instruct",
+            "qwen/qwen2.5-72b-instruct",
+            "google/gemma-2-27b-it"
+        ]
+
 def execute_scan():
-    node = os.getenv("TARGET_NODE", "Israel")
-    session_id = os.getenv("SESSION_ID", "UISP_17871497905")
+    node = os.getenv("TARGET_NODE", "South Africa")
+    session_id = os.getenv("SESSION_ID", "UISP_1787151836328")
     
     prompt = f"""
     [ACTIVATE UESP PRCE: DIMENSIONAL OVERWRITE]
@@ -105,29 +120,27 @@ def execute_scan():
     }}
     """
     
-    # Ultra-fast execution endpoints (Non-Llama & optimized MoE architectures)
-    target_models = [
-        "nvidia/nemotron-3.5-lightning-30b-a3b",
-        "zhipuai/glm-5.2",
-        "Qwen/Qwen2.5-Coder-32B-Instruct",
-        "google/gemma-2-27b-it",
-        "deepseek-ai/DeepSeek-V3"
-    ]
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=os.environ.get("NVIDIA_API_KEY")
+    )
+    
+    # Query NVIDIA NIM directly for endpoints currently online
+    verified_models = get_verified_active_models(client)[:5]
 
     raw_output = None
     winning_model = None
 
-    # Multi-threaded parallel execution
-    print(f"[PARALLEL START] Dispatching request across {len(target_models)} endpoints...")
-    with ThreadPoolExecutor(max_workers=len(target_models)) as executor:
-        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in target_models}
+    print(f"[PARALLEL START] Dispatching request across {len(verified_models)} active endpoints...")
+    with ThreadPoolExecutor(max_workers=len(verified_models)) as executor:
+        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in verified_models}
         
         for future in as_completed(futures):
             model_name = futures[future]
             try:
                 winning_model, raw_output = future.result()
                 print(f"[VICTORY] Fastest valid schema received from: {winning_model}")
-                break  # Instantly unlocks script execution upon first completed task
+                break
             except Exception as err:
                 print(f"[RETRY-SKIP] Endpoint {model_name} failed/timed out: {err}")
 
@@ -136,7 +149,6 @@ def execute_scan():
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Save to both required static paths
     os.makedirs('data', exist_ok=True)
     with open(f"data/session_{session_id}.json", "w") as f:
         json.dump(raw_output, f, indent=2)
