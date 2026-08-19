@@ -6,82 +6,87 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
 def extract_json_payload(text):
-    """Extracts and parses JSON from raw completion text, handling markdown wrapping."""
+    """Extracts, cleans, and validates JSON payloads from model completions."""
     if not text:
         return None
+    
+    # Strip markdown block quotes
     cleaned = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
+    
     try:
-        return json.loads(cleaned)
+        data = json.loads(cleaned)
     except json.JSONDecodeError:
         match = re.search(r"\{.*\}", cleaned, re.DOTALL)
         if match:
-            return json.loads(match.group(0))
-        raise
+            try:
+                data = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                return None
+        else:
+            return None
 
-def call_nim_endpoint(model_name, prompt):
-    """Executes single NIM endpoint completion with hard thread timeout."""
+    # Strict key validation to prevent UI 'undefined' errors
+    required_keys = ["tti", "shi", "delta", "historical_parallel", "era_resolution", "modern_resolution"]
+    if not all(k in data for k in required_keys):
+        return None
+
+    return data
+
+def call_inference_endpoint(model_name, prompt):
+    """Dispatches a single inference request with strict 12-second socket timeout."""
+    base_url = os.environ.get("INFERENCE_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    api_key = os.environ.get("HYPERBOLIC_API_KEY", os.environ.get("NVIDIA_API_KEY"))
+
     client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.environ.get("NVIDIA_API_KEY"),
-        timeout=35.0  # Prevents hanging threads
+        base_url=base_url,
+        api_key=api_key,
+        timeout=12.0  # Hard deadline to prevent API queuing stalls
     )
     
-    print(f"[DISPATCH] Racing heavy endpoint: {model_name}")
+    print(f"[DISPATCH] Racing model endpoint: {model_name}")
     completion = client.chat.completions.create(
         model=model_name,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP Apex Engine powered by NVIDIA NIM Microservices. "
-                    "You perform live systemic audits integrating high-concurrency neural logic, "
-                    "divine ocular analytics, and Shinobi tactical matrices. Never use static figures; "
-                    "calculate everything dynamically based on the input node. "
-                    "You MUST respond ONLY with a raw, valid JSON object matching the requested schema."
+                    "You are the UESP Apex Engine powered by high-speed inference microservices. "
+                    "Perform live systemic audits using dynamic calculations based on the input node. "
+                    "You MUST respond ONLY with a raw, valid JSON object matching the exact schema."
                 )
             },
             {"role": "user", "content": prompt}
         ],
         temperature=0.2,
-        max_tokens=1024
+        max_tokens=800
     )
     
     content = completion.choices[0].message.content
     parsed = extract_json_payload(content)
     if not parsed:
-        raise ValueError("Invalid JSON payload returned.")
+        raise ValueError(f"Endpoint {model_name} returned invalid or incomplete schema.")
+    
     return model_name, parsed
 
-def get_active_non_llama_models(client):
-    """Dynamically retrieves live non-Llama model identifiers from NVIDIA NIM."""
-    try:
-        models_page = client.models.list()
-        active_ids = [m.id for m in models_page.data if "llama" not in m.id.lower()]
-        return active_ids
-    except Exception as e:
-        print(f"[WARN] Could not auto-fetch active models: {e}")
-        return []
-
 def execute_scan():
-    node = os.getenv("TARGET_NODE", "Global Infrastructure")
-    session_id = os.getenv("SESSION_ID", "manual_test")
+    node = os.getenv("TARGET_NODE", "Israel")
+    session_id = os.getenv("SESSION_ID", "UISP_17871497905")
     
-    # Dynamic Timeline Matrix (586 AD - 3000 CE)
     prompt = f"""
     [ACTIVATE UESP PRCE: DIMENSIONAL OVERWRITE]
     SUBJECT: {node}
     SESSION: {session_id}
-    TIMELINE MATRIX: 586 AD - 3000 CE (Expanded Epoch Horizon)
+    TIMELINE MATRIX: 586 AD - 3000 CE
 
     CORE SYSTEM INSTRUCTIONS:
-    1. CALCULATE TTI & SHI: Compute Technical Integrity (TTI) and Systemic Health (SHI) as dynamic floats (0.00 to 100.00) based on {node}'s live trajectory.
-    2. DIFFERENTIAL DELTA: Compute the absolute non-linear Delta between TTI and SHI.
-    3. HISTORICAL & FUTURE PARALLEL: Identify a precise historical event or strategic timeline node (586 AD - 3000 CE) mirroring {node}'s friction.
-    4. SHINOBI TACTICS & OCULAR DIAGNOSTICS: Apply Divine Ocular Inspection (Jougan/Sharingan perceptive clarity) to detect systemic Genjutsu/anomalies, and integrate Tailed Beast Chakra-Matrix Density to stabilize infrastructure throughput.
-    5. RESOLUTION CONTRAST: Contrast the legacy 'Era Resolution' with the advanced 'Modern UESP Resolution'.
-    6. BIBLICAL ANCHOR: Select a Biblical Scripture that resonates with this specific systemic state to secure structural integrity.
-    7. UESP PROTOCOL: Formulate a final sovereign protocol summary.
+    1. Compute Technical Integrity (TTI) and Systemic Health (SHI) as dynamic floats (0.00 to 100.00).
+    2. Compute absolute Delta between TTI and SHI.
+    3. Identify historical parallel (586 AD - 3000 CE).
+    4. Apply Divine Ocular Inspection and Tailed Beast Chakra-Matrix Density metrics.
+    5. Contrast Era Resolution vs Modern UESP Resolution.
+    6. Select a Biblical Scripture anchor.
+    7. Formulate protocol summary.
 
     OUTPUT RAW JSON ONLY matching this schema:
     {{
@@ -100,55 +105,43 @@ def execute_scan():
     }}
     """
     
-    # Premier non-Llama candidates supporting up to 1M context
-    primary_nim_models = [
-        "nvidia/nemotron-3-ultra-550b-a55b",     # Flagship 550B MoE (1M context)
-        "zhipuai/glm-5.2",                         # Frontier agentic reasoning (1M context)
-        "nvidia/nemotron-3.5-lightning-30b-a3b", # High-throughput sparse MoE (1M context)
+    # Ultra-fast execution endpoints (Non-Llama & optimized MoE architectures)
+    target_models = [
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "zhipuai/glm-5.2",
+        "Qwen/Qwen2.5-Coder-32B-Instruct",
         "google/gemma-2-27b-it",
-        "qwen/qwen2.5-72b-instruct"
+        "deepseek-ai/DeepSeek-V3"
     ]
-    
-    # Fetch live active endpoints to supplement pool
-    client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.environ.get("NVIDIA_API_KEY")
-    )
-    live_models = get_active_non_llama_models(client)
-    for model_id in live_models:
-        if model_id not in primary_nim_models:
-            primary_nim_models.append(model_id)
 
-    # Limit maximum concurrency to top active models to avoid socket saturation
-    candidate_pool = primary_nim_models[:6]
-
+    raw_output = None
     winning_model = None
-    data = None
 
-    # Kage Bunshin Protocol: Fire concurrent threads to eliminate queue latency
-    print(f"[PARALLEL START] Racing {len(candidate_pool)} non-Llama heavy endpoints...")
-    with ThreadPoolExecutor(max_workers=len(candidate_pool)) as executor:
-        futures = {executor.submit(call_nim_endpoint, model, prompt): model for model in candidate_pool}
+    # Multi-threaded parallel execution
+    print(f"[PARALLEL START] Dispatching request across {len(target_models)} endpoints...")
+    with ThreadPoolExecutor(max_workers=len(target_models)) as executor:
+        futures = {executor.submit(call_inference_endpoint, model, prompt): model for model in target_models}
         
         for future in as_completed(futures):
             model_name = futures[future]
             try:
-                winning_model, data = future.result()
-                print(f"[VICTORY] Fastest valid response received from: {winning_model}")
-                break  # First successful completion locks the result
+                winning_model, raw_output = future.result()
+                print(f"[VICTORY] Fastest valid schema received from: {winning_model}")
+                break  # Instantly unlocks script execution upon first completed task
             except Exception as err:
-                print(f"[RETRY-SKIP] Endpoint {model_name} failed or dropped: {err}")
+                print(f"[RETRY-SKIP] Endpoint {model_name} failed/timed out: {err}")
 
-    if not data:
-        raise RuntimeError("[CRITICAL] All parallel NVIDIA NIM non-Llama model executions failed.")
+    if not raw_output:
+        raise RuntimeError("[CRITICAL] All model endpoints in the execution pool failed.")
 
-    data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # Save to both required static paths
     os.makedirs('data', exist_ok=True)
     with open(f"data/session_{session_id}.json", "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(raw_output, f, indent=2)
     with open("data/resonance_output.json", "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(raw_output, f, indent=2)
 
     print(f"[SUCCESS] Audit completed for session {session_id} via {winning_model}")
 
