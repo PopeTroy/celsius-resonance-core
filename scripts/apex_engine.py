@@ -1,14 +1,33 @@
 import os
 import json
+import re
 import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
-def get_nvidia_nim_completion(prompt, model_name):
-    """Executes inference via specified NVIDIA NIM Microservices model."""
+def extract_json_payload(text):
+    """Extracts and parses JSON from raw completion text, handling markdown wrapping."""
+    if not text:
+        return None
+    cleaned = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
+    cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        raise
+
+def call_nim_endpoint(model_name, prompt):
+    """Executes single NIM endpoint completion with hard thread timeout."""
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.environ.get("NVIDIA_API_KEY")
+        api_key=os.environ.get("NVIDIA_API_KEY"),
+        timeout=35.0  # Prevents hanging threads
     )
+    
+    print(f"[DISPATCH] Racing heavy endpoint: {model_name}")
     completion = client.chat.completions.create(
         model=model_name,
         messages=[
@@ -18,14 +37,21 @@ def get_nvidia_nim_completion(prompt, model_name):
                     "You are the UESP Apex Engine powered by NVIDIA NIM Microservices. "
                     "You perform live systemic audits integrating high-concurrency neural logic, "
                     "divine ocular analytics, and Shinobi tactical matrices. Never use static figures; "
-                    "calculate everything dynamically based on the input node. Always output strict JSON."
+                    "calculate everything dynamically based on the input node. "
+                    "You MUST respond ONLY with a raw, valid JSON object matching the requested schema."
                 )
             },
             {"role": "user", "content": prompt}
         ],
-        response_format={"type": "json_object"}
+        temperature=0.2,
+        max_tokens=1024
     )
-    return completion.choices[0].message.content
+    
+    content = completion.choices[0].message.content
+    parsed = extract_json_payload(content)
+    if not parsed:
+        raise ValueError("Invalid JSON payload returned.")
+    return model_name, parsed
 
 def get_active_non_llama_models(client):
     """Dynamically retrieves live non-Llama model identifiers from NVIDIA NIM."""
@@ -57,12 +83,12 @@ def execute_scan():
     6. BIBLICAL ANCHOR: Select a Biblical Scripture that resonates with this specific systemic state to secure structural integrity.
     7. UESP PROTOCOL: Formulate a final sovereign protocol summary.
 
-    OUTPUT JSON ONLY (Strict Schema):
+    OUTPUT RAW JSON ONLY matching this schema:
     {{
       "node": "{node}",
-      "tti": float,
-      "shi": float,
-      "delta": float,
+      "tti": 85.50,
+      "shi": 72.10,
+      "delta": 13.40,
       "historical_parallel": "str",
       "era_resolution": "str",
       "modern_resolution": "str",
@@ -74,38 +100,48 @@ def execute_scan():
     }}
     """
     
-    # Primary candidate models (Non-Llama enterprise models)
-    nim_models = [
-        "mistralai/mistral-nemotron",
-        "mistralai/mistral-large-2-instruct",
+    # Premier non-Llama candidates supporting up to 1M context
+    primary_nim_models = [
+        "nvidia/nemotron-3-ultra-550b-a55b",     # Flagship 550B MoE (1M context)
+        "zhipuai/glm-5.2",                         # Frontier agentic reasoning (1M context)
+        "nvidia/nemotron-3.5-lightning-30b-a3b", # High-throughput sparse MoE (1M context)
         "google/gemma-2-27b-it",
         "qwen/qwen2.5-72b-instruct"
     ]
     
-    # Fetch live active endpoints to supplement fallback cascade
+    # Fetch live active endpoints to supplement pool
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=os.environ.get("NVIDIA_API_KEY")
     )
     live_models = get_active_non_llama_models(client)
     for model_id in live_models:
-        if model_id not in nim_models:
-            nim_models.append(model_id)
+        if model_id not in primary_nim_models:
+            primary_nim_models.append(model_id)
 
-    raw_output = None
-    for model in nim_models:
-        try:
-            print(f"[INFO] Executing audit via NVIDIA NIM Model: {model}")
-            raw_output = get_nvidia_nim_completion(prompt, model)
-            if raw_output:
-                break
-        except Exception as err:
-            print(f"[WARN] NVIDIA NIM Model ({model}) failure: {err}. Triaging to next model...")
+    # Limit maximum concurrency to top active models to avoid socket saturation
+    candidate_pool = primary_nim_models[:6]
 
-    if not raw_output:
-        raise RuntimeError("[CRITICAL] All NVIDIA NIM multi-model executions failed.")
+    winning_model = None
+    data = None
 
-    data = json.loads(raw_output)
+    # Kage Bunshin Protocol: Fire concurrent threads to eliminate queue latency
+    print(f"[PARALLEL START] Racing {len(candidate_pool)} non-Llama heavy endpoints...")
+    with ThreadPoolExecutor(max_workers=len(candidate_pool)) as executor:
+        futures = {executor.submit(call_nim_endpoint, model, prompt): model for model in candidate_pool}
+        
+        for future in as_completed(futures):
+            model_name = futures[future]
+            try:
+                winning_model, data = future.result()
+                print(f"[VICTORY] Fastest valid response received from: {winning_model}")
+                break  # First successful completion locks the result
+            except Exception as err:
+                print(f"[RETRY-SKIP] Endpoint {model_name} failed or dropped: {err}")
+
+    if not data:
+        raise RuntimeError("[CRITICAL] All parallel NVIDIA NIM non-Llama model executions failed.")
+
     data['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     os.makedirs('data', exist_ok=True)
@@ -114,7 +150,7 @@ def execute_scan():
     with open("data/resonance_output.json", "w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"[SUCCESS] Audit completed for session: {session_id}")
+    print(f"[SUCCESS] Audit completed for session {session_id} via {winning_model}")
 
 if __name__ == "__main__":
     execute_scan()
