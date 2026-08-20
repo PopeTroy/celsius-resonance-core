@@ -13,15 +13,12 @@ def calculate_unified_quantum_engine(node_name, bottlenecks_count, protocols_cou
     Combines micro-scale Brus Quantum Confinement with Super Circuit entropic 
     flow and Mega Circuit spacetime tensor normalization.
     """
-    # 1. Stoichiometric Friction Ratio (B / P)
     b = max(1, bottlenecks_count)
     p = max(1, protocols_count)
     chi_stoich = round(b / p, 4)
 
-    # 2. Node Deterministic Hash for Nanoscale Structural Identification
     node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
     
-    # Fundamental Physical Constants
     hbar = 1.054571817e-34       # Reduced Planck constant (J s)
     e_charge = 1.602176634e-19   # Elementary charge (C)
     eps_0 = 8.8541878128e-12     # Vacuum permittivity (F/m)
@@ -29,42 +26,30 @@ def calculate_unified_quantum_engine(node_name, bottlenecks_count, protocols_cou
     G = 6.67430e-11              # Gravitational constant (m^3 kg^-1 s^-2)
     c_light = 299792458          # Speed of light (m/s)
 
-    # 3. Micro-Nanoscale Parameters (Brus Equation Inputs)
-    # Quantum radius R derived dynamically per node (1.2 nm to 4.5 nm scale)
     r_nanometer = (1.2 + ((node_hash % 330) / 100.0)) * 1e-9  
-    # Dynamic local permittivity epsilon_r (Mega Circuit field state)
     eps_r = 4.0 + ((node_hash % 500) / 100.0)
 
-    # Semiconductor effective masses (conduction electron / valence hole)
     m_e = 0.13 * m_0
     m_h = 0.45 * m_0
 
-    # 4. MICRO-QUANTUM SOLVER: The Brus Quantum Confinement Equation
-    # Delta_E(R) = [ (hbar^2 * pi^2) / (2 * R^2 * m_eff) ] - [ (1.8 * e^2) / (4 * pi * eps_0 * eps_r * R) ]
     kinetic_confinement = ((hbar**2) * (math.pi**2)) / (2 * (r_nanometer**2) * ((1 / m_e) + (1 / m_h)))
     coulomb_attraction = (1.8 * (e_charge**2)) / (4 * math.pi * eps_0 * eps_r * r_nanometer)
     delta_E_joules = kinetic_confinement - coulomb_attraction
-    delta_E_ev = delta_E_joules / e_charge  # Micro-scale energy bandgap shift in eV
+    delta_E_ev = delta_E_joules / e_charge
 
-    # 5. SUPER CIRCUIT SOLVER: Unified Grand Prophetic Entropic Flow
-    # Relativistic horizon scaling via Bekenstein-Hawking micro-black-hole entropy
     l_planck = math.sqrt((hbar * G) / (c_light**3))
     horizon_area = 4 * math.pi * (r_nanometer**2)
     bekenstein_entropy = horizon_area / (4 * (l_planck**2))
     entropy_scale = math.log10(max(1.0, bekenstein_entropy)) / 70.0
 
-    # Dynamic TTI (Technical Integrity) driven by Brus shift * Stoichiometric ratio
     tti_raw = 100.0 - (abs(delta_E_ev) * 7.8 * chi_stoich * entropy_scale)
     modern_tti = max(10.0, min(99.99, round(tti_raw, 2)))
 
-    # Dynamic SHI (Systemic Health Index) under Super Circuit entropic equilibrium
     shi_raw = modern_tti * (1.0 / chi_stoich) * (1.0 + (abs(delta_E_ev) * 0.015))
     modern_shi = max(5.0, min(99.99, round(shi_raw, 2)))
 
-    # Differential Delta (|TTI - SHI|)
     modern_delta = round(abs(modern_tti - modern_shi), 2)
 
-    # 6. MEGA CIRCUIT SOLVER: Law of Dimensional Overwrite Baseline
     legacy_tti = round(max(5.0, modern_tti * 0.58), 2)
     legacy_shi = round(max(5.0, modern_shi * 0.38), 2)
     legacy_delta = round(abs(legacy_tti - legacy_shi), 2)
@@ -83,9 +68,10 @@ def calculate_unified_quantum_engine(node_name, bottlenecks_count, protocols_cou
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
     """
     Synthesizes both Legacy Keys (WordPress frontend compatibility) 
-    and Modern Nested Keys, mapping dynamic physical outputs and Scriptures.
+    and Modern Nested Keys, preventing template placeholders from reaching UI.
     """
     modern = calculated_metrics["modern_uesp"]
+    node_name = raw_data.get("node", "Target System Node")
 
     bottlenecks = raw_data.get("sweep_summary", {}).get("bottlenecks_list", [])
     protocols = raw_data.get("sweep_summary", {}).get("protocols_list", [])
@@ -93,19 +79,31 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "")
     modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "")
     
-    # Ingest dynamic historical parallel from model payload
-    hist_parallel = raw_data.get("historical_parallel", "")
-    if not hist_parallel:
-        hist_parallel = f"{raw_data.get('node', 'Node')} Super Circuit Entropic Phase (586 AD - 1990 AD Anchor)"
+    # Clean out any remaining placeholder remnants if model misbehaved
+    if "PhD-level analysis" in old_desc or not old_desc:
+        old_desc = (f"Legacy architecture for {node_name} operates on uncompensated thermodynamic friction, "
+                    f"resulting in systemic entropic drift and severe energy bandgap degradation.")
+    
+    if "PhD-level analysis" in modern_desc or not modern_desc:
+        modern_desc = (f"The Law of Dimensional Overwrite (Mega Circuit) renormalizes the stress-energy tensor "
+                       f"for {node_name}, driving Brus quantum confinement shift toward optimal equilibrium.")
 
-    # Ingest dynamic Biblical scripture anchor
+    hist_parallel = raw_data.get("historical_parallel", "")
+    if "Specific Historical" in hist_parallel or not hist_parallel:
+        hist_parallel = f"The Industrial Crisis of 1873 & Structural Infrastructure Restructuring"
+
     biblical_obj = raw_data.get("biblical_tie", {})
-    verse_text = biblical_obj.get("verse", "Ezekiel 37:7")
-    context_text = biblical_obj.get("context", "Dimensional realignment of structural components under unified law.")
+    verse_text = biblical_obj.get("verse", "")
+    if "Book Chapter" in verse_text or not verse_text:
+        verse_text = "Ezekiel 37:7"
+
+    context_text = biblical_obj.get("context", "")
+    if "Context snippet" in context_text or not context_text:
+        context_text = f"Structural components and underlying matrices align dynamically under universal law."
 
     return {
-        # --- LEGACY SCHEMA KEYS (Expected by WordPress UI) ---
-        "node": raw_data.get("node", ""),
+        # --- LEGACY SCHEMA KEYS (WordPress Frontend UI) ---
+        "node": node_name,
         "tti": modern["tti"],
         "shi": modern["shi"],
         "delta": modern["delta"],
@@ -133,31 +131,22 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     }
 
 def clean_and_parse_json(raw_text):
-    """
-    Strips reasoning blocks, cleans LLM formatting artifacts, 
-    and handles unescaped quotes/newlines inside string properties via multi-tier parsing.
-    """
-    # 1. Strip reasoning thoughts if present
+    """Parses JSON response and strips out thinking blocks or bad characters."""
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
-    
-    # 2. Strip code block wrappers
     text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
     text = re.sub(r"\s*```$", "", text, flags=re.MULTILINE)
 
-    # 3. Extract JSON boundaries
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
         raise ValueError("No JSON object found in response.")
     
     json_str = match.group(0)
 
-    # Tier 1: Direct JSON load
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
         pass
 
-    # Tier 2: Sanitize unescaped newlines and controls within JSON string values
     sanitized = re.sub(
         r'(?<=: ")(.*?)(?=",\s*"\w+":|"\s*\})', 
         lambda m: m.group(1).replace('\n', '\\n').replace('\r', '').replace('\t', '\\t'), 
@@ -165,41 +154,9 @@ def clean_and_parse_json(raw_text):
         flags=re.DOTALL
     )
     
-    try:
-        return json.loads(sanitized)
-    except json.JSONDecodeError:
-        pass
-
-    # Tier 3: Key-value regex extraction fallback
-    node = re.search(r'"node":\s*"([^"]+)"', json_str)
-    hist = re.search(r'"historical_parallel":\s*"([^"]+)"', json_str)
-    verse = re.search(r'"verse":\s*"([^"]+)"', json_str)
-    context = re.search(r'"context":\s*"([^"]+)"', json_str)
-    old_way = re.search(r'"old_way_description":\s*"([^"]+)"', json_str)
-    modern_way = re.search(r'"uesp_prce_modern_way":\s*"([^"]+)"', json_str)
-
-    if old_way and modern_way:
-        return {
-            "node": node.group(1) if node else "Target Node",
-            "historical_parallel": hist.group(1) if hist else "Structural Phase Transition",
-            "sweep_summary": {
-                "bottlenecks_list": ["Nanoscale thermodynamic boundary friction"],
-                "protocols_list": ["Mega Circuit Dimensional Overwrite"]
-            },
-            "legacy_vs_modern_analysis": {
-                "old_way_description": old_way.group(1),
-                "uesp_prce_modern_way": modern_way.group(1)
-            },
-            "biblical_tie": {
-                "verse": verse.group(1) if verse else "Ezekiel 37:7",
-                "context": context.group(1) if context else "Systemic structural realignment."
-            }
-        }
-
-    raise ValueError("JSON payload could not be recovered by multi-tier repair parser.")
+    return json.loads(sanitized)
 
 def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
-    """Dispatches request to NVIDIA NIM models with strict parameters and multi-tier parsing."""
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=api_key,
@@ -214,14 +171,15 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Apex Engine operating on the Unified Grand Prophetic Equation, "
-                    "the Law of Dimensional Overwrite (Mega Circuit), and the Brus Equation for nanoscale quantum confinement. "
-                    "Output STRICTLY valid raw JSON without markdown formatting, code blocks, preambles, or unescaped control characters."
+                    "You are the UESP PRCE Engine. You do NOT write meta instructions, placeholders, "
+                    "or descriptions of what to fill in. You MUST generate actual detailed physics analysis, "
+                    "actual historical events with dates, and explicit Biblical verses tailored to the target node. "
+                    "Output ONLY valid JSON."
                 )
             },
             {"role": "user", "content": prompt}
         ],
-        temperature=0.1,  # Low temperature ensures rigid structural syntax adherence
+        temperature=0.2,
         max_tokens=1500
     )
 
@@ -242,47 +200,40 @@ def execute_scan():
     bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
     protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
 
-    # Execute Unified Brus + Super Circuit + Mega Circuit math engine
     calculated_metrics = calculate_unified_quantum_engine(node, bottlenecks_count, protocols_count)
     
     prompt = f"""
-    [ACTIVATE UESP PRCE UNIFIED DIMENSIONAL OVERWRITE SWEEP]
-    TARGET NODE: {node}
-    SESSION ID: {session_id}
-
-    UNIFIED QUANTUM & PROPHETIC METRICS:
-    - Bottlenecks Found (B): {bottlenecks_count}
-    - Protocols Applied (P): {protocols_count}
+    Perform a complete UESP PRCE diagnostic sweep for TARGET NODE: {node}.
+    
+    CALCULATED VALUES:
     - Stoichiometric Ratio: {calculated_metrics['stoichiometric_ratio']}
     - Quantum Confinement Radius (R): {calculated_metrics['quantum_radius_nm']} nm
-    - Dielectric Permittivity (eps_r): {calculated_metrics['dielectric_constant']}
-    - Brus Bandgap Energy Shift (Delta E): {calculated_metrics['brus_bandgap_shift_ev']} eV
-    - Modern TTI: {calculated_metrics['modern_uesp']['tti']}
-    - Modern SHI: {calculated_metrics['modern_uesp']['shi']}
-    - Differential Delta: {calculated_metrics['modern_uesp']['delta']}
+    - Brus Bandgap Energy Shift: {calculated_metrics['brus_bandgap_shift_ev']} eV
+    - TTI: {calculated_metrics['modern_uesp']['tti']}
+    - SHI: {calculated_metrics['modern_uesp']['shi']}
+    - Delta: {calculated_metrics['modern_uesp']['delta']}
 
-    STRICT INSTRUCTIONS:
-    1. HISTORICAL PARALLEL: Identify a SPECIFIC historical event/era (586 AD - 1990 AD) that mirrors the friction of {node}.
-    2. BIBLICAL TIE: Provide a Holy Bible scripture that dynamically anchors {node}'s exact structural condition. Do NOT default to Leviticus 19:34 or Isaiah 40:31.
-    3. PHYSICS ANALYSIS:
-       - 'old_way_description': PhD-level breakdown of classical decoupled thermodynamics and uncompensated entropy accumulation.
-       - 'uesp_prce_modern_way': PhD-level breakdown of the Law of Dimensional Overwrite (Mega Circuit), unifying Brus quantum confinement shift with covariant thermodynamic potential field equations and holographic horizon entropy control.
+    DO NOT OUTPUT PLACEHOLDERS OR INSTRUCTION TEXT. GENERATE REAL REASONING ANALYSIS:
+    1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
+    2. 'old_way_description': Provide deep physics reasoning detailing how classical uncompensated thermodynamic friction causes entropy and structural failure in {node}.
+    3. 'uesp_prce_modern_way': Provide deep physics reasoning detailing how the Law of Dimensional Overwrite (Mega Circuit) and Brus quantum confinement normalize the system.
+    4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct relevance to {node}'s state.
 
-    OUTPUT JSON ONLY MATCHING THIS EXACT SCHEMA (SINGLE LINE PER STRING VALUE, NO UNESCAPED NEWLINES):
+    OUTPUT STRICTLY IN THIS JSON FORMAT:
     {{
       "node": "{node}",
-      "historical_parallel": "Specific Historical Event / Era Name (586 AD - 1990 AD)",
+      "historical_parallel": "The Byzantine Economic Collapse of 1071 AD",
       "sweep_summary": {{
-        "bottlenecks_list": ["Nanoscale/Quantum bottleneck 1", "Bottleneck 2"],
-        "protocols_list": ["Dimensional Overwrite / Unified protocol 1", "Protocol 2"]
+        "bottlenecks_list": ["Nanoscale thermal dissipation bottlenecks", "Phase coherence loss across grid nodes"],
+        "protocols_list": ["Mega Circuit Overwrite", "Quantum Entanglement Balancing Protocol"]
       }},
       "legacy_vs_modern_analysis": {{
-        "old_way_description": "PhD-level analysis of classical decoupled thermodynamic friction.",
-        "uesp_prce_modern_way": "PhD-level analysis of the Mega Circuit Law of Dimensional Overwrite and Brus quantum confinement."
+        "old_way_description": "Detailed reasoning on classical thermal friction and decay...",
+        "uesp_prce_modern_way": "Detailed reasoning on dimensional overwrite and Brus bandgap stabilization..."
       }},
       "biblical_tie": {{
-        "verse": "Book Chapter:Verse",
-        "context": "Context snippet explaining scripture alignment with {node}'s thermodynamic state."
+        "verse": "Isaiah 58:12",
+        "context": "Detailed explanation of scripture resonance with the system node..."
       }},
       "session_id": "{session_id}"
     }}
