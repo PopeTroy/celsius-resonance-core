@@ -15,6 +15,7 @@ def calculate_tti_shi_brus(bottlenecks_count, protocols_count, r_nm=2.4, epsilon
     p_count = max(1, protocols_count)
     stoichiometric_ratio = round(b_count / p_count, 4)
 
+    # Fundamental constants
     h_bar = 1.054571817e-34    # Reduced Planck's constant (J s)
     e = 1.602176634e-19        # Elementary charge (C)
     eps_0 = 8.8541878128e-12   # Vacuum permittivity (F/m)
@@ -24,6 +25,7 @@ def calculate_tti_shi_brus(bottlenecks_count, protocols_count, r_nm=2.4, epsilon
     m_h = 0.45 * m_0
     r = r_nm * 1e-9
 
+    # Brus Quantum Confinement Formula
     kinetic_term = ((h_bar**2) * (math.pi**2)) / (2 * (r**2) * ((1 / m_e) + (1 / m_h)))
     coulomb_term = (1.8 * (e**2)) / (4 * math.pi * eps_0 * epsilon_r * r)
     delta_E_joules = kinetic_term - coulomb_term
@@ -55,9 +57,7 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     and Modern Nested Keys into a single unified JSON response.
     """
     modern = calculated_metrics["modern_uesp"]
-    legacy = calculated_metrics["legacy_old"]
 
-    # Extract lists or convert strings if necessary
     bottlenecks = raw_data.get("sweep_summary", {}).get("bottlenecks_list", [])
     protocols = raw_data.get("sweep_summary", {}).get("protocols_list", [])
 
@@ -65,7 +65,7 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "")
 
     hybrid_payload = {
-        # --- LEGACY SCHEMA KEYS (Expected by older WordPress frontend scripts) ---
+        # --- LEGACY SCHEMA KEYS (WordPress Frontend Backwards Compatibility) ---
         "node": raw_data.get("node", ""),
         "tti": modern["tti"],
         "shi": modern["shi"],
@@ -79,7 +79,7 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         },
         "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'System stabilization'}",
 
-        # --- MODERN SCHEMA KEYS (For updated UI modules) ---
+        # --- MODERN SCHEMA KEYS ---
         "sweep_summary": {
             "bottlenecks_list": bottlenecks,
             "protocols_list": protocols
@@ -96,14 +96,14 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     return hybrid_payload
 
 def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
-    """Dispatches request and reformats into hybrid structure."""
+    """Dispatches payload to active NVIDIA NIM endpoint replacing Groq parameters."""
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=api_key,
         timeout=120.0
     )
 
-    print(f"[DISPATCH] Running dual-schema generation via model: {model_name}")
+    print(f"[DISPATCH] Executing scan via NVIDIA model: {model_name}")
     
     completion = client.chat.completions.create(
         model=model_name,
@@ -111,8 +111,8 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Engine. Output strictly valid raw JSON without markdown or code blocks. "
-                    "Analyze node bottlenecks vs protocols and legacy vs modern resolutions."
+                    "You are the UESP PRCE Engine. Output strictly valid raw JSON without markdown formatting, "
+                    "preambles, or code blocks. Analyze node bottlenecks vs protocols and legacy vs modern resolutions."
                 )
             },
             {"role": "user", "content": prompt}
@@ -128,7 +128,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
 
     match = re.search(r"\{.*\}", cleaned, re.DOTALL)
     if not match:
-        raise ValueError(f"Model {model_name} failed to return a valid JSON string.")
+        raise ValueError(f"Model {model_name} failed to return a valid JSON payload.")
 
     raw_data = json.loads(match.group(0))
     final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
@@ -179,6 +179,7 @@ def execute_scan():
     }}
     """
 
+    # Active 2026 NVIDIA NIM model registry
     nvidia_models = [
         "nvidia/nemotron-3-ultra-550b-a55b",
         "nvidia/nemotron-3.5-lightning-30b-a3b",
@@ -188,7 +189,7 @@ def execute_scan():
     raw_output = None
     winning_model = None
 
-    print(f"[PARALLEL START] Executing dual-schema scan across active endpoints...")
+    print(f"[PARALLEL START] Racing {len(nvidia_models)} NVIDIA NIM endpoints...")
     with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
         futures = {
             executor.submit(
@@ -200,7 +201,7 @@ def execute_scan():
             model_name = futures[future]
             try:
                 winning_model, raw_output = future.result()
-                print(f"[VICTORY] Generated hybrid payload via: {winning_model}")
+                print(f"[VICTORY] Generated hybrid payload via endpoint: {winning_model}")
                 break
             except Exception as err:
                 print(f"[WARN] Endpoint ({model_name}) skipped: {err}")
@@ -216,7 +217,7 @@ def execute_scan():
     with open("data/resonance_output.json", "w") as f:
         json.dump(raw_output, f, indent=2)
 
-    print(f"[SUCCESS] Hybrid JSON output ready for WordPress frontend.")
+    print(f"[SUCCESS] Hybrid JSON output written to data/resonance_output.json")
 
 if __name__ == "__main__":
     execute_scan()
