@@ -174,7 +174,6 @@ def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
     Endpoint 2 (Chapter): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}.json
     """
     try:
-        # Match verse citation string (e.g. "Isaiah 58:12" or "Ezekiel 37:7")
         match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
         if not match:
             return {"reference": verse_ref, "text": None, "source_endpoint": None}
@@ -183,7 +182,6 @@ def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
         chapter = match.group(2)
         verse = match.group(3)
 
-        # 1. Primary Request: Specific Verse Endpoint
         verse_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}/verses/{verse}.json"
         
         req = urllib.request.Request(verse_url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -198,7 +196,6 @@ def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
                 }
 
     except Exception:
-        # 2. Fallback Request: Full Chapter Endpoint
         try:
             match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
             if match:
@@ -229,11 +226,6 @@ def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
 # 4. METRIC CALCULATION CORE WITH 72 ENTITY MAPPINGS
 # =====================================================================
 def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
-    """
-    Calculates TTI, SHI, and Delta purely based on the ratio of Bottlenecks (B) vs 
-    Protocols (P) applied across the node's historical timeline entropic scale (586 AD - Present),
-    dynamically mapping exact Bottleneck and Protocol names from the 72 spectrums.
-    """
     b = max(1, bottlenecks_count)
     p = max(1, protocols_count)
     stoichiometric_ratio = round(b / p, 4)
@@ -279,10 +271,6 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     }
 
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
-    """
-    Synthesizes both Legacy Keys and Modern Nested Keys, stripping out thermodynamic 
-    text and resolving live biblical verse text via CDN API endpoints.
-    """
     modern = calculated_metrics["modern_uesp"]
     node_name = raw_data.get("node", "Target System Node")
 
@@ -298,12 +286,10 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     hist_parallel = raw_data.get("historical_parallel", "")
     biblical_obj = raw_data.get("biblical_tie", {})
     
-    # Resolve exact scripture text using jsDelivr Bible API CDN endpoints
     raw_verse_cite = biblical_obj.get("verse", "Isaiah 58:12")
     anchor_verse_data = fetch_prophetic_anchor_verse(raw_verse_cite)
 
     return {
-        # --- LEGACY SCHEMA KEYS (WordPress Frontend Compatibility) ---
         "node": node_name,
         "tti": modern["tti"],
         "shi": modern["shi"],
@@ -318,8 +304,6 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
             "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
         },
         "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Dimensional Overwrite & Structural Alignment'}",
-
-        # --- MODERN NESTED KEYS ---
         "sweep_summary": {
             "bottlenecks_list": bottlenecks,
             "protocols_list": protocols
@@ -333,30 +317,45 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "session_id": raw_data.get("session_id", "")
     }
 
+# =====================================================================
+# 5. ROBUST JSON PARSER FIX FOR LLM ARTIFACTS
+# =====================================================================
 def clean_and_parse_json(raw_text):
+    """
+    Robust JSON parser designed to handle LLM artifacts, unescaped quotes,
+    newlines within string values, and missing code block syntax.
+    """
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
-    text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
-    text = re.sub(r"\s*```$", "", text, flags=re.MULTILINE)
-
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        raise ValueError("No JSON object found in response.")
     
-    json_str = match.group(0)
+    code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if code_block_match:
+        json_str = code_block_match.group(1)
+    else:
+        bracket_match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not bracket_match:
+            raise ValueError("No valid JSON structure found in LLM response.")
+        json_str = bracket_match.group(0)
 
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
         pass
 
-    sanitized = re.sub(
-        r'(?<=: ")(.*?)(?=",\s*"\w+":|"\s*\})', 
-        lambda m: m.group(1).replace('\n', '\\n').replace('\r', '').replace('\t', '\\t'), 
-        json_str, 
-        flags=re.DOTALL
+    repaired = re.sub(
+        r'(?<=:\s*")([\s\S]*?)(?="\s*(?:,\s*"|\}))',
+        lambda m: m.group(1).replace('\n', '\\n').replace('\r', '').replace('\t', '\\t').replace('"', '\\"'),
+        json_str
     )
-    
-    return json.loads(sanitized)
+
+    try:
+        return json.loads(repaired)
+    except json.JSONDecodeError:
+        cleaned_lines = []
+        for line in json_str.splitlines():
+            cleaned_lines.append(line)
+        
+        repaired_fallback = "\n".join(cleaned_lines)
+        return json.loads(repaired_fallback)
 
 def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
     client = OpenAI(
