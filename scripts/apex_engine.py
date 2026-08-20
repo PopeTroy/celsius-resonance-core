@@ -4,6 +4,7 @@ import re
 import math
 import datetime
 import hashlib
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
@@ -164,7 +165,68 @@ ANGELIC_PROTOCOLS = [
 ]
 
 # =====================================================================
-# 3. METRIC CALCULATION CORE WITH 72 ENTITY MAPPINGS
+# 3. PROPHETIC ANCHOR ENDPOINT INTEGRATION (JSDELIVR BIBLE API)
+# =====================================================================
+def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
+    """
+    Fetches exact scripture text from jsDelivr Bible API CDN endpoints.
+    Endpoint 1 (Verse): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}/verses/${verse}.json
+    Endpoint 2 (Chapter): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}.json
+    """
+    try:
+        # Match verse citation string (e.g. "Isaiah 58:12" or "Ezekiel 37:7")
+        match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
+        if not match:
+            return {"reference": verse_ref, "text": None, "source_endpoint": None}
+
+        book_raw = match.group(1).strip().lower().replace(" ", "")
+        chapter = match.group(2)
+        verse = match.group(3)
+
+        # 1. Primary Request: Specific Verse Endpoint
+        verse_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}/verses/{verse}.json"
+        
+        req = urllib.request.Request(verse_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                data = json.loads(resp.read().decode('utf-8'))
+                text = data.get("text", "").strip()
+                return {
+                    "reference": f"{data.get('book', {}).get('name', book_raw)} {chapter}:{verse}",
+                    "text": text,
+                    "source_endpoint": verse_url
+                }
+
+    except Exception:
+        # 2. Fallback Request: Full Chapter Endpoint
+        try:
+            match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
+            if match:
+                book_raw = match.group(1).strip().lower().replace(" ", "")
+                chapter = match.group(2)
+                verse_num = int(match.group(3))
+
+                chapter_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}.json"
+                req = urllib.request.Request(chapter_url, headers={'User-Agent': 'Mozilla/5.0'})
+                
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    if resp.status == 200:
+                        data = json.loads(resp.read().decode('utf-8'))
+                        verses_list = data if isinstance(data, list) else data.get("verses", [])
+                        for v in verses_list:
+                            if str(v.get("verse")) == str(verse_num):
+                                return {
+                                    "reference": f"{book_raw.capitalize()} {chapter}:{verse_num}",
+                                    "text": v.get("text", "").strip(),
+                                    "source_endpoint": chapter_url
+                                }
+        except Exception as e:
+            print(f"[WARN] Failed to retrieve CDN prophetic anchor verse: {e}")
+
+    return {"reference": verse_ref, "text": None, "source_endpoint": None}
+
+# =====================================================================
+# 4. METRIC CALCULATION CORE WITH 72 ENTITY MAPPINGS
 # =====================================================================
 def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
     """
@@ -172,15 +234,12 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     Protocols (P) applied across the node's historical timeline entropic scale (586 AD - Present),
     dynamically mapping exact Bottleneck and Protocol names from the 72 spectrums.
     """
-    # 1. Sequential Inputs
     b = max(1, bottlenecks_count)
     p = max(1, protocols_count)
     stoichiometric_ratio = round(b / p, 4)
 
-    # 2. Sequential Node Entropy Seed (derived from node string signature)
     node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
     
-    # Map Demonic Bottlenecks and Angelic Protocols based on hash offset
     mapped_bottlenecks = []
     for i in range(b):
         d_idx = (node_hash + (i * 7)) % 72
@@ -193,23 +252,17 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
         a = ANGELIC_PROTOCOLS[a_idx]
         mapped_protocols.append(f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}")
 
-    # Historical Entropy Index (S_node) bound between 1.05 and 2.45 based on the node signature
     s_node = 1.05 + ((node_hash % 1400) / 1000.0)
 
-    # 3. Dynamic Calculation Core
-    # TTI: Technical Integrity calculated from structural friction
     friction_coefficient = stoichiometric_ratio * s_node
     tti_raw = 100.0 - (friction_coefficient * 4.25)
     modern_tti = max(15.0, min(99.95, round(tti_raw, 2)))
 
-    # SHI: Systemic Health Index under active protocol balancing
     shi_raw = 100.0 - (stoichiometric_ratio * 0.85)
     modern_shi = max(20.0, min(99.99, round(shi_raw, 2)))
 
-    # Differential Delta (|TTI - SHI|)
     modern_delta = round(abs(modern_tti - modern_shi), 2)
 
-    # Legacy Old System Metrics (Uncompensated structural decay baseline)
     legacy_tti = round(max(5.0, modern_tti * 0.62), 2)
     legacy_shi = round(max(5.0, modern_shi * 0.42), 2)
     legacy_delta = round(abs(legacy_tti - legacy_shi), 2)
@@ -227,8 +280,8 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
 
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
     """
-    Synthesizes both Legacy Keys (WordPress frontend compatibility) 
-    and Modern Nested Keys, stripping out thermodynamic text in favor of pure resolution reasoning.
+    Synthesizes both Legacy Keys and Modern Nested Keys, stripping out thermodynamic 
+    text and resolving live biblical verse text via CDN API endpoints.
     """
     modern = calculated_metrics["modern_uesp"]
     node_name = raw_data.get("node", "Target System Node")
@@ -239,12 +292,15 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "")
     modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "")
     
-    # Strip any stray thermodynamic text out if the AI hallucinated physics terms
     old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
     modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
 
     hist_parallel = raw_data.get("historical_parallel", "")
     biblical_obj = raw_data.get("biblical_tie", {})
+    
+    # Resolve exact scripture text using jsDelivr Bible API CDN endpoints
+    raw_verse_cite = biblical_obj.get("verse", "Isaiah 58:12")
+    anchor_verse_data = fetch_prophetic_anchor_verse(raw_verse_cite)
 
     return {
         # --- LEGACY SCHEMA KEYS (WordPress Frontend Compatibility) ---
@@ -256,7 +312,9 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "era_resolution": old_desc,
         "modern_resolution": modern_desc,
         "biblical_tie": {
-            "verse": biblical_obj.get("verse", "Ezekiel 37:7"),
+            "verse": anchor_verse_data["reference"],
+            "scripture_text": anchor_verse_data["text"],
+            "cdn_endpoint": anchor_verse_data["source_endpoint"],
             "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
         },
         "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Dimensional Overwrite & Structural Alignment'}",
@@ -276,7 +334,6 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     }
 
 def clean_and_parse_json(raw_text):
-    """Parses JSON response and strips out code blocks, preambles, or unescaped characters."""
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
     text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
     text = re.sub(r"\s*```$", "", text, flags=re.MULTILINE)
@@ -344,7 +401,6 @@ def execute_scan():
     bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
     protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
 
-    # Calculate sequential node metrics from Bottlenecks vs Protocols & 72 Spectrum Mappings
     calculated_metrics = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
     
     prompt = f"""
@@ -363,7 +419,7 @@ def execute_scan():
     1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
     2. 'old_way_description': Explain clearly how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
     3. 'uesp_prce_modern_way': Explain clearly how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
-    4. 'biblical_tie': Provide an actual Bible verse citation and explain its direct prophetic resonance with {node}'s structural restoration.
+    4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct prophetic resonance with {node}'s structural restoration.
 
     DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
 
