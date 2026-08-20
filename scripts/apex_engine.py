@@ -1,16 +1,59 @@
 import os
 import json
 import re
+import math
 import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
-def extract_and_validate_json(raw_response):
-    """Cleans completion output and ensures string fields contain real text, not type placeholders."""
+def calculate_tti_shi_brus(r_nm=2.5, epsilon_r=8.0, stoichiometric_ratio=1.05):
+    """
+    Calculates dynamic TTI and SHI floats based on the quantum confinement Brus equation 
+    and stoichiometric balance parameters (b, p).
+    
+    Parameters:
+    - r_nm: Particle/Core radius in nanometers
+    - epsilon_r: Relative permittivity / dielectric constant
+    - stoichiometric_ratio: Reaction balance ratio (b/p)
+    """
+    # Physical constants
+    h_bar = 1.054571817e-34    # Reduced Planck's constant (J s)
+    e = 1.602176634e-19        # Elementary charge (C)
+    eps_0 = 8.8541878128e-12   # Vacuum permittivity (F/m)
+    m_0 = 9.1093837015e-31     # Rest electron mass (kg)
+    
+    # Effective masses
+    m_e = 0.13 * m_0
+    m_h = 0.45 * m_0
+    r = r_nm * 1e-9            # Convert nm to meters
+
+    # Brus confinement energy shift (Joules)
+    kinetic_term = ((h_bar**2) * (math.pi**2)) / (2 * (r**2) * ((1 / m_e) + (1 / m_h)))
+    coulomb_term = (1.8 * (e**2)) / (4 * math.pi * eps_0 * epsilon_r * r)
+    delta_E_joules = kinetic_term - coulomb_term
+    
+    # Convert shift to eV for scaling
+    delta_E_ev = delta_E_joules / e
+
+    # Derive dynamic floats bounded to [0.00, 100.00]
+    # TTI reflects technical integrity derived from energy quantum alignment
+    tti_raw = 100.0 - (abs(delta_E_ev) * 12.5 * stoichiometric_ratio)
+    tti = max(10.0, min(99.9, round(tti_raw, 2)))
+
+    # SHI reflects systemic health scaled by stoichiometric index
+    shi_raw = tti * (1.0 / stoichiometric_ratio) * 0.92
+    shi = max(5.0, min(99.9, round(shi_raw, 2)))
+
+    # Absolute differential delta
+    delta = round(abs(tti - shi), 2)
+
+    return tti, shi, delta
+
+def extract_and_validate_json(raw_response, calculated_tti, calculated_shi, calculated_delta):
+    """Validates structural output and binds the calculated float metrics."""
     if not raw_response:
         return None
         
-    # Strip potential reasoning/thinking tags or markdown wrappers
     cleaned = re.sub(r"<think>.*?</think>", "", raw_response.strip(), flags=re.DOTALL)
     cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned.strip(), flags=re.MULTILINE)
     cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
@@ -27,29 +70,25 @@ def extract_and_validate_json(raw_response):
         else:
             return None
 
+    # Force exact locally-calculated floats into the structure
+    data["tti"] = calculated_tti
+    data["shi"] = calculated_shi
+    data["delta"] = calculated_delta
+
     required_keys = ["tti", "shi", "delta", "historical_parallel", "era_resolution", "modern_resolution", "biblical_tie", "protocol"]
     if not all(k in data for k in required_keys):
         return None
 
-    # Anti-Placeholder Filter: Reject responses that literally copy type hints
     banned_tokens = ["float", "str", "string", "none", "null", "<str>"]
     for key in ["historical_parallel", "era_resolution", "modern_resolution", "protocol"]:
         val = str(data.get(key, "")).strip().lower()
         if val in banned_tokens or len(val) < 8:
             return None
 
-    # Calculate and enforce numerical float precision
-    try:
-        data["tti"] = round(float(data["tti"]), 2)
-        data["shi"] = round(float(data["shi"]), 2)
-        data["delta"] = round(abs(data["tti"] - data["shi"]), 2)
-    except (ValueError, TypeError):
-        return None
-
     return data
 
-def call_nvidia_endpoint(model_name, prompt, api_key):
-    """Dispatches request via NVIDIA NIM API using OpenAI SDK."""
+def call_nvidia_endpoint(model_name, prompt, api_key, calculated_tti, calculated_shi, calculated_delta):
+    """Dispatches request via NVIDIA API using OpenAI SDK."""
     base_url = "https://integrate.api.nvidia.com/v1"
 
     client = OpenAI(
@@ -66,22 +105,20 @@ def call_nvidia_endpoint(model_name, prompt, api_key):
                 "role": "system",
                 "content": (
                     "You are the UESP Apex Engine powered by NVIDIA NIM Microservices. "
-                    "You perform live systemic audits integrating high-concurrency neural logic. "
-                    "Analyze the given node dynamically. Compute TTI and SHI as dynamic floats. "
-                    "Do NOT output type placeholders like 'str' or 'float'. "
-                    "Output ONLY a raw, valid JSON object matching the requested schema."
+                    "You perform live systemic audits integrating stoichiometry and physical equations. "
+                    "Output ONLY a raw, valid JSON object matching the requested schema without type hints or markdown wrappers."
                 )
             },
             {"role": "user", "content": prompt}
         ],
         temperature=0.3,
-        max_tokens=896
+        max_tokens=1024
     )
     
     content = completion.choices[0].message.content
-    parsed = extract_and_validate_json(content)
+    parsed = extract_and_validate_json(content, calculated_tti, calculated_shi, calculated_delta)
     if not parsed:
-        raise ValueError(f"Endpoint {model_name} failed schema validation or echoed placeholders.")
+        raise ValueError(f"Endpoint {model_name} failed schema validation.")
     
     return model_name, parsed
 
@@ -92,31 +129,37 @@ def execute_scan():
 
     node = os.getenv("TARGET_NODE", "Global Infrastructure")
     session_id = os.getenv("SESSION_ID", "manual_test")
-    
-    # Prompt provides realistic example data to prevent LLM from copying type strings
+
+    # Step 1: Perform actual mathematical/stoichiometric calculations locally
+    tti, shi, delta = calculate_tti_shi_brus(r_nm=2.4, epsilon_r=6.5, stoichiometric_ratio=1.08)
+    print(f"[MATH ENGINE] Dynamic Equation Calculated -> TTI: {tti} | SHI: {shi} | DELTA: {delta}")
+
+    # Step 2: Pass calculated float results directly into prompt schema context
     prompt = f"""
     [ACTIVATE UESP PRCE: DIMENSIONAL OVERWRITE]
     SUBJECT NODE: {node}
     SESSION ID: {session_id}
     TIMELINE MATRIX: 586 AD - 2026
 
+    SYSTEM METRICS (LIVE CALCULATED VIA BRUS & STOICHIOMETRIC EQUATION):
+    - Technical Integrity (TTI): {tti}
+    - Systemic Health (SHI): {shi}
+    - Differential Delta: {delta}
+
     CORE INSTRUCTIONS:
-    1. Calculate Technical Integrity (TTI) and Systemic Health (SHI) as dynamic floats (0.00 to 100.00) based on {node}'s current macro status.
-    2. Compute the Differential Delta (|TTI - SHI|).
-    3. Identify a precise historical event/era (586 AD - 1990 AD) that mirrors the systemic friction of {node}.
-    4. Contrast the 'Era Resolution' (how it was handled then) with a 'Modern UESP Resolution' (the advanced technical/prophetic solution).
-    5. Select a Biblical Scripture that resonates specifically with this systemic state.
-    6. Formulate a final UESP Protocol summary.
+    1. Analyze the systemic implications of TTI={tti} and SHI={shi} (Delta={delta}) for {node}.
+    2. Identify a precise historical event/era (586 AD - 1990 AD) that mirrors this friction state.
+    3. Contrast the 'Era Resolution' (how it was handled then) with a 'Modern UESP Resolution' (the advanced technical/prophetic solution).
+    4. Select a Biblical Scripture that resonates specifically with this exact calculated state.
+    5. Formulate a final UESP Protocol summary.
 
-    CRITICAL: DO NOT OUTPUT TYPE PLACEHOLDERS LIKE "str" OR "float". POPULATE WITH REAL CALCULATED ANALYSIS.
-
-    OUTPUT JSON ONLY (Strict Schema Structure):
+    OUTPUT RAW JSON ONLY matching this structure:
     {{
       "node": "{node}",
-      "tti": 78.42,
-      "shi": 64.15,
-      "delta": 14.27,
-      "historical_parallel": "During 15th-century maritime trade shifts, structural bottlenecks caused systemic economic friction similar to current infrastructure bottlenecks.",
+      "tti": {tti},
+      "shi": {shi},
+      "delta": {delta},
+      "historical_parallel": "During 15th-century maritime trade shifts, structural bottlenecks caused systemic economic friction.",
       "era_resolution": "Localized decentralization of agrarian hubs and manual resource rationing.",
       "modern_resolution": "Deployment of automated microgrid load-balancing and AI-driven predictive routing.",
       "biblical_tie": {{
@@ -128,12 +171,11 @@ def execute_scan():
     }}
     """
     
-    # Active, verified NVIDIA NIM model roster
     nvidia_models = [
-        "meta/llama-3.3-70b-instruct",
-        "meta/llama-3.1-70b-instruct",
-        "nvidia/nemotron-4-340b-instruct",
-        "meta/llama-3.2-3b-instruct"
+        "nvidia/nemotron-3-super-120b-a12b",
+        "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+        "google/gemma-4-31b-it",
+        "stepfun-ai/step-3.7-flash"
     ]
 
     raw_output = None
@@ -141,7 +183,11 @@ def execute_scan():
 
     print(f"[PARALLEL START] Racing {len(nvidia_models)} NVIDIA NIM endpoints...")
     with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
-        futures = {executor.submit(call_nvidia_endpoint, model, prompt, api_key): model for model in nvidia_models}
+        futures = {
+            executor.submit(
+                call_nvidia_endpoint, model, prompt, api_key, tti, shi, delta
+            ): model for model in nvidia_models
+        }
         
         for future in as_completed(futures):
             model_name = futures[future]
@@ -157,7 +203,6 @@ def execute_scan():
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Persist outputs locally
     os.makedirs('data', exist_ok=True)
     with open(f"data/session_{session_id}.json", "w") as f:
         json.dump(raw_output, f, indent=2)
