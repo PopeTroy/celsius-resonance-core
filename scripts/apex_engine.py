@@ -7,60 +7,46 @@ import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
-def calculate_unified_quantum_engine(node_name, bottlenecks_count, protocols_count):
+def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
     """
-    Unified Grand Prophetic & Dimensional Overwrite Calculation Core:
-    Combines micro-scale Brus Quantum Confinement with Super Circuit entropic 
-    flow and Mega Circuit spacetime tensor normalization.
+    Calculates TTI, SHI, and Delta purely based on the ratio of Bottlenecks (B) vs 
+    Protocols (P) applied across the node's historical timeline entropic scale (586 AD - Present).
+    Completely removes physics/thermodynamic variables while guaranteeing non-static calculations per node.
     """
+    # 1. Sequential Inputs
     b = max(1, bottlenecks_count)
     p = max(1, protocols_count)
-    chi_stoich = round(b / p, 4)
+    stoichiometric_ratio = round(b / p, 4)
 
+    # 2. Sequential Node Entropy Seed (derived from node string signature)
     node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
     
-    hbar = 1.054571817e-34       # Reduced Planck constant (J s)
-    e_charge = 1.602176634e-19   # Elementary charge (C)
-    eps_0 = 8.8541878128e-12     # Vacuum permittivity (F/m)
-    m_0 = 9.1093837015e-31       # Electron rest mass (kg)
-    G = 6.67430e-11              # Gravitational constant (m^3 kg^-1 s^-2)
-    c_light = 299792458          # Speed of light (m/s)
+    # Historical Entropy Index (S_node) bound between 1.05 and 2.45 based on the node signature
+    s_node = 1.05 + ((node_hash % 1400) / 1000.0)
 
-    r_nanometer = (1.2 + ((node_hash % 330) / 100.0)) * 1e-9  
-    eps_r = 4.0 + ((node_hash % 500) / 100.0)
+    # 3. Dynamic Calculation Core
+    # TTI: Technical Integrity calculated from structural friction (Bottlenecks / Protocols * Node Entropy)
+    friction_coefficient = stoichiometric_ratio * s_node
+    tti_raw = 100.0 - (friction_coefficient * 4.25)
+    modern_tti = max(15.0, min(99.95, round(tti_raw, 2)))
 
-    m_e = 0.13 * m_0
-    m_h = 0.45 * m_0
+    # SHI: Systemic Health Index under active protocol balancing
+    shi_raw = 100.0 - (stoichiometric_ratio * 0.85)
+    modern_shi = max(20.0, min(99.99, round(shi_raw, 2)))
 
-    kinetic_confinement = ((hbar**2) * (math.pi**2)) / (2 * (r_nanometer**2) * ((1 / m_e) + (1 / m_h)))
-    coulomb_attraction = (1.8 * (e_charge**2)) / (4 * math.pi * eps_0 * eps_r * r_nanometer)
-    delta_E_joules = kinetic_confinement - coulomb_attraction
-    delta_E_ev = delta_E_joules / e_charge
-
-    l_planck = math.sqrt((hbar * G) / (c_light**3))
-    horizon_area = 4 * math.pi * (r_nanometer**2)
-    bekenstein_entropy = horizon_area / (4 * (l_planck**2))
-    entropy_scale = math.log10(max(1.0, bekenstein_entropy)) / 70.0
-
-    tti_raw = 100.0 - (abs(delta_E_ev) * 7.8 * chi_stoich * entropy_scale)
-    modern_tti = max(10.0, min(99.99, round(tti_raw, 2)))
-
-    shi_raw = modern_tti * (1.0 / chi_stoich) * (1.0 + (abs(delta_E_ev) * 0.015))
-    modern_shi = max(5.0, min(99.99, round(shi_raw, 2)))
-
+    # Differential Delta (|TTI - SHI|)
     modern_delta = round(abs(modern_tti - modern_shi), 2)
 
-    legacy_tti = round(max(5.0, modern_tti * 0.58), 2)
-    legacy_shi = round(max(5.0, modern_shi * 0.38), 2)
+    # Legacy Old System Metrics (Uncompensated structural decay baseline)
+    legacy_tti = round(max(5.0, modern_tti * 0.62), 2)
+    legacy_shi = round(max(5.0, modern_shi * 0.42), 2)
     legacy_delta = round(abs(legacy_tti - legacy_shi), 2)
 
     return {
         "bottlenecks_found": b,
         "protocols_applied": p,
-        "stoichiometric_ratio": chi_stoich,
-        "quantum_radius_nm": round(r_nanometer * 1e9, 3),
-        "dielectric_constant": round(eps_r, 2),
-        "brus_bandgap_shift_ev": round(delta_E_ev, 4),
+        "stoichiometric_ratio": stoichiometric_ratio,
+        "node_entropy_index": round(s_node, 3),
         "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta},
         "legacy_old": {"tti": legacy_tti, "shi": legacy_shi, "delta": legacy_delta}
     }
@@ -68,7 +54,7 @@ def calculate_unified_quantum_engine(node_name, bottlenecks_count, protocols_cou
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
     """
     Synthesizes both Legacy Keys (WordPress frontend compatibility) 
-    and Modern Nested Keys, preventing template placeholders from reaching UI.
+    and Modern Nested Keys, stripping out thermodynamic text in favor of pure resolution reasoning.
     """
     modern = calculated_metrics["modern_uesp"]
     node_name = raw_data.get("node", "Target System Node")
@@ -79,30 +65,15 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "")
     modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "")
     
-    # Clean out any remaining placeholder remnants if model misbehaved
-    if "PhD-level analysis" in old_desc or not old_desc:
-        old_desc = (f"Legacy architecture for {node_name} operates on uncompensated thermodynamic friction, "
-                    f"resulting in systemic entropic drift and severe energy bandgap degradation.")
-    
-    if "PhD-level analysis" in modern_desc or not modern_desc:
-        modern_desc = (f"The Law of Dimensional Overwrite (Mega Circuit) renormalizes the stress-energy tensor "
-                       f"for {node_name}, driving Brus quantum confinement shift toward optimal equilibrium.")
+    # Strip any stray thermodynamic text out if the AI hallucinated physics terms
+    old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
+    modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
 
     hist_parallel = raw_data.get("historical_parallel", "")
-    if "Specific Historical" in hist_parallel or not hist_parallel:
-        hist_parallel = f"The Industrial Crisis of 1873 & Structural Infrastructure Restructuring"
-
     biblical_obj = raw_data.get("biblical_tie", {})
-    verse_text = biblical_obj.get("verse", "")
-    if "Book Chapter" in verse_text or not verse_text:
-        verse_text = "Ezekiel 37:7"
-
-    context_text = biblical_obj.get("context", "")
-    if "Context snippet" in context_text or not context_text:
-        context_text = f"Structural components and underlying matrices align dynamically under universal law."
 
     return {
-        # --- LEGACY SCHEMA KEYS (WordPress Frontend UI) ---
+        # --- LEGACY SCHEMA KEYS (WordPress Frontend Compatibility) ---
         "node": node_name,
         "tti": modern["tti"],
         "shi": modern["shi"],
@@ -111,10 +82,10 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "era_resolution": old_desc,
         "modern_resolution": modern_desc,
         "biblical_tie": {
-            "verse": verse_text,
-            "context": context_text
+            "verse": biblical_obj.get("verse", "Ezekiel 37:7"),
+            "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
         },
-        "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Mega Circuit Dimensional Overwrite'}",
+        "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Dimensional Overwrite & Structural Alignment'}",
 
         # --- MODERN NESTED KEYS ---
         "sweep_summary": {
@@ -131,7 +102,7 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     }
 
 def clean_and_parse_json(raw_text):
-    """Parses JSON response and strips out thinking blocks or bad characters."""
+    """Parses JSON response and strips out code blocks, preambles, or unescaped characters."""
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
     text = re.sub(r"^```(?:json)?\s*", "", text.strip(), flags=re.MULTILINE)
     text = re.sub(r"\s*```$", "", text, flags=re.MULTILINE)
@@ -163,7 +134,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
         timeout=120.0
     )
 
-    print(f"[DISPATCH] Executing Unified Quantum Audit via model: {model_name}")
+    print(f"[DISPATCH] Executing Sequential Node Sweep via model: {model_name}")
     
     completion = client.chat.completions.create(
         model=model_name,
@@ -171,10 +142,9 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Engine. You do NOT write meta instructions, placeholders, "
-                    "or descriptions of what to fill in. You MUST generate actual detailed physics analysis, "
-                    "actual historical events with dates, and explicit Biblical verses tailored to the target node. "
-                    "Output ONLY valid JSON."
+                    "You are the UESP PRCE Engine. Explain resolutions in pure, direct historical and "
+                    "structural terms. DO NOT mention thermodynamics, quantum mechanics, Brus equations, "
+                    "or mathematical formulas in your explanations. Output strictly valid JSON."
                 )
             },
             {"role": "user", "content": prompt}
@@ -200,40 +170,44 @@ def execute_scan():
     bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
     protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
 
-    calculated_metrics = calculate_unified_quantum_engine(node, bottlenecks_count, protocols_count)
+    # Calculate sequential node metrics from Bottlenecks vs Protocols
+    calculated_metrics = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
     
     prompt = f"""
-    Perform a complete UESP PRCE diagnostic sweep for TARGET NODE: {node}.
+    Perform a UESP PRCE diagnostic sweep for TARGET NODE: {node}.
     
-    CALCULATED VALUES:
-    - Stoichiometric Ratio: {calculated_metrics['stoichiometric_ratio']}
-    - Quantum Confinement Radius (R): {calculated_metrics['quantum_radius_nm']} nm
-    - Brus Bandgap Energy Shift: {calculated_metrics['brus_bandgap_shift_ev']} eV
-    - TTI: {calculated_metrics['modern_uesp']['tti']}
-    - SHI: {calculated_metrics['modern_uesp']['shi']}
-    - Delta: {calculated_metrics['modern_uesp']['delta']}
+    SEQUENTIAL CALCULATED METRICS:
+    - Bottlenecks Found: {bottlenecks_count}
+    - Protocols Applied: {protocols_count}
+    - Stoichiometric Friction Ratio: {calculated_metrics['stoichiometric_ratio']}
+    - Node Historical Entropy Index: {calculated_metrics['node_entropy_index']}
+    - Calculated TTI: {calculated_metrics['modern_uesp']['tti']}
+    - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
+    - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
 
-    DO NOT OUTPUT PLACEHOLDERS OR INSTRUCTION TEXT. GENERATE REAL REASONING ANALYSIS:
+    STRICT INSTRUCTIONS:
     1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
-    2. 'old_way_description': Provide deep physics reasoning detailing how classical uncompensated thermodynamic friction causes entropy and structural failure in {node}.
-    3. 'uesp_prce_modern_way': Provide deep physics reasoning detailing how the Law of Dimensional Overwrite (Mega Circuit) and Brus quantum confinement normalize the system.
-    4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct relevance to {node}'s state.
+    2. 'old_way_description': Explain clearly how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
+    3. 'uesp_prce_modern_way': Explain clearly how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
+    4. 'biblical_tie': Provide an actual Bible verse citation and explain its direct prophetic resonance with {node}'s structural restoration.
+
+    DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
 
     OUTPUT STRICTLY IN THIS JSON FORMAT:
     {{
       "node": "{node}",
-      "historical_parallel": "The Byzantine Economic Collapse of 1071 AD",
+      "historical_parallel": "Parallel Era: The Six-Day War and Territorial Reconfiguration of June 5-10, 1967 AD",
       "sweep_summary": {{
-        "bottlenecks_list": ["Nanoscale thermal dissipation bottlenecks", "Phase coherence loss across grid nodes"],
-        "protocols_list": ["Mega Circuit Overwrite", "Quantum Entanglement Balancing Protocol"]
+        "bottlenecks_list": ["Bottleneck description 1", "Bottleneck description 2"],
+        "protocols_list": ["Protocol description 1", "Protocol description 2"]
       }},
       "legacy_vs_modern_analysis": {{
-        "old_way_description": "Detailed reasoning on classical thermal friction and decay...",
-        "uesp_prce_modern_way": "Detailed reasoning on dimensional overwrite and Brus bandgap stabilization..."
+        "old_way_description": "Pure structural explanation of legacy friction and system failures...",
+        "uesp_prce_modern_way": "Pure structural explanation of UESP PRCE modern dimensional overwrite resolution..."
       }},
       "biblical_tie": {{
         "verse": "Isaiah 58:12",
-        "context": "Detailed explanation of scripture resonance with the system node..."
+        "context": "Direct prophetic explanation of scripture resonance..."
       }},
       "session_id": "{session_id}"
     }}
