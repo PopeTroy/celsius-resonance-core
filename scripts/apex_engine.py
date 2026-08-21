@@ -168,11 +168,6 @@ ANGELIC_PROTOCOLS = [
 # 3. PROPHETIC ANCHOR ENDPOINT INTEGRATION (JSDELIVR BIBLE API)
 # =====================================================================
 def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
-    """
-    Fetches exact scripture text from jsDelivr Bible API CDN endpoints.
-    Endpoint 1 (Verse): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}/verses/${verse}.json
-    Endpoint 2 (Chapter): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}.json
-    """
     try:
         match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
         if not match:
@@ -318,12 +313,11 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     }
 
 # =====================================================================
-# 5. ROBUST JSON PARSER FIX FOR LLM ARTIFACTS
+# 5. FIXED ROBUST JSON PARSER (FIXED-WIDTH LOOKBEHIND REMOVED)
 # =====================================================================
 def clean_and_parse_json(raw_text):
     """
-    Robust JSON parser designed to handle LLM artifacts, unescaped quotes,
-    newlines within string values, and missing code block syntax.
+    Parses LLM JSON outputs reliably without using invalid Python variable-width lookbehinds.
     """
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
     
@@ -341,21 +335,23 @@ def clean_and_parse_json(raw_text):
     except json.JSONDecodeError:
         pass
 
-    repaired = re.sub(
-        r'(?<=:\s*")([\s\S]*?)(?="\s*(?:,\s*"|\}))',
-        lambda m: m.group(1).replace('\n', '\\n').replace('\r', '').replace('\t', '\\t').replace('"', '\\"'),
-        json_str
-    )
+    # Safe sanitization without variable lookbehinds
+    lines = json_str.splitlines()
+    repaired_lines = []
+    for line in lines:
+        if ":" in line and not line.strip().endswith("{") and not line.strip().endswith("["):
+            parts = line.split(":", 1)
+            k = parts[0]
+            v = parts[1].replace("\n", "\\n").replace("\t", "\\t")
+            repaired_lines.append(f"{k}:{v}")
+        else:
+            repaired_lines.append(line)
 
+    repaired_str = "\n".join(repaired_lines)
     try:
-        return json.loads(repaired)
+        return json.loads(repaired_str)
     except json.JSONDecodeError:
-        cleaned_lines = []
-        for line in json_str.splitlines():
-            cleaned_lines.append(line)
-        
-        repaired_fallback = "\n".join(cleaned_lines)
-        return json.loads(repaired_fallback)
+        return json.loads(json_str.encode('utf-8', 'ignore').decode('utf-8'))
 
 def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
     client = OpenAI(
@@ -374,13 +370,14 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
                 "content": (
                     "You are the UESP PRCE Engine. Explain resolutions in pure, direct historical and "
                     "structural terms. DO NOT mention thermodynamics, quantum mechanics, Brus equations, "
-                    "or mathematical formulas in your explanations. Output strictly valid JSON."
+                    "or mathematical formulas in your explanations. Respond STRICTLY in valid JSON."
                 )
             },
             {"role": "user", "content": prompt}
         ],
         temperature=0.2,
-        max_tokens=1500
+        max_tokens=1500,
+        response_format={"type": "json_object"} if "nemotron" in model_name else None
     )
 
     content = completion.choices[0].message.content
@@ -442,10 +439,11 @@ def execute_scan():
     }}
     """
 
+    # Model roster updated from live build catalog
     nvidia_models = [
-        "nvidia/nemotron-3-ultra-550b-a55b",
         "nvidia/nemotron-3.5-lightning-30b-a3b",
-        "z-ai/glm-5.2"
+        "nvidia/nemotron-3-ultra-550b-a55b",
+        "deepseek-ai/deepseek-v4-flash-0731"
     ]
 
     raw_output = None
