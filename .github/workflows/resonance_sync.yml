@@ -1,4 +1,4 @@
-name: Run Apex Engine Pipeline
+name: Celsius resonance sync
 
 on:
   push:
