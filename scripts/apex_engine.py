@@ -10,6 +10,7 @@ import urllib.error
 # =====================================================================
 # 0. CONFIGURATION (LOCAL NVIDIA NIM ENDPOINTS & MODEL SETTINGS)
 # =====================================================================
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
 NIM_LLM_URL = os.getenv("NIM_LLM_URL", "http://localhost:8000/v1/chat/completions")
 NIM_EMBED_URL = os.getenv("NIM_EMBED_URL", "http://localhost:8001/v1/embeddings")
 NIM_RERANK_URL = os.getenv("NIM_RERANK_URL", "http://localhost:8002/v1/rerank")
@@ -22,6 +23,9 @@ NIM_RERANK_MODEL = os.getenv("NIM_RERANK_MODEL", "nvidia/rerank-qa-mistral-4b")
 # DeepSeek Reasoning Toggles
 DEEPSEEK_ENABLE_THINKING = os.getenv("DEEPSEEK_ENABLE_THINKING", "true").lower() == "true"
 DEEPSEEK_REASONING_EFFORT = os.getenv("DEEPSEEK_REASONING_EFFORT", "high")
+
+TARGET_NODE = os.getenv("TARGET_NODE", "1")
+SESSION_ID = os.getenv("SESSION_ID", "default_session")
 
 # =====================================================================
 # 1. DATA TABLES (72 GOETIA VECTORS & 72 ANGELIC PROTOCOLS)
@@ -153,127 +157,138 @@ ANGELIC_PROTOCOLS = [
     (49, "Vehuel", "Principalities", 392.369, "Exalts grand souls, bestows high philosophy and art", "Executive Talent Mentorship & Fine Arts Sponsorship"),
     (50, "Daniel", "Principalities", 400.459, "Obtains divine mercy, comforts sorrow, grants eloquence", "Crisis Communication Response & Corporate Stakeholder Solace"),
     (51, "Hahasiah", "Principalities", 408.549, "Reveals arcana of medicine, chemistry, and physics", "Quantum Chemistry Synthesis & Advanced Pharmacology Discovery"),
-    (52, "Imamiah", "Principalities", 416.639, "Destroys enemy power, protects prisoners and travelers", "Transportation Security Infrastructure & Hostage Negotiation"),
-    (53, "Nanael", "Principalities", 424.729, "Governs higher education, philosophy, and judicial truth", "University Higher Education & Judicial Truth Governance"),
-    (54, "Nithael", "Principalities", 432.819, "Governs emperors, kings, civil leaders, and stable dynasties", "Institutional Continuity & Leadership Succession Protection"),
-    (55, "Mebahiah", "Principalities", 440.909, "Grants children, moral clarity, and religious integrity", "Corporate Social Responsibility & Ethical Culture Building"),
-    (56, "Poyel", "Principalities", 448.999, "Fulfills requests, grants fame, fortune, and high eloquence", "Strategic Asset Acquisition & Global Brand Elevation"),
-    (57, "Nemamiah", "Archangels", 457.089, "Grants general prosperity, delivers captives, empowers leaders", "Executive Resilience & Tactical Crisis Leadership"),
-    (58, "Yeialel", "Archangels", 465.179, "Protects against sorrow, heals eye diseases and metal wounds", "Precision Ophthalmic Tech & Advanced Metallurgical Defense"),
-    (59, "Harahel", "Archangels", 473.269, "Governs treasure archives, libraries, printing, and wise child development", "High-Capacity Data Storage & Archival System Design"),
-    (60, "Mitzrael", "Archangels", 481.359, "Heals mental illness, liberates persecuted souls, enforces loyalty", "Psychological Safety Frameworks & Institutional Loyalty Audit"),
-    (61, "Umabel", "Archangels", 489.449, "Governs physics, astronomy, geography, and personal friendships", "Astrophysical Analytics & Geographic Information Systems (GIS)"),
-    (62, "Iah-Hel", "Archangels", 497.539, "Grants wisdom, retreat, solitude, and rapid technical learning", "Accelerated Machine Learning & Deep Technical Specialization"),
-    (63, "Anauel", "Archangels", 505.629, "Protects commerce, banking, trade, and shields against accidents", "Financial Risk Mitigation & Transactional Infrastructure Shielding"),
-    (64, "Mehiel", "Archangels", 513.719, "Protects against fierce wild beasts, inspires authors/professors", "Content Security Infrastructure & Computational Academic Writing"),
-    (65, "Damabiah", "Angels", 521.809, "Protects against shipwrecks, governs water bodies and marine wealth", "Maritime Risk Engineering & Subsea Asset Protection"),
-    (66, "Manakel", "Angels", 529.899, "Appeases divine anger, cures epilepsy, governs vegetation/sleep", "Acoustic Neuromodulation & Bio-Agricultural Processing"),
-    (67, "Eiael", "Angels", 537.989, "Grants longevity, wisdom, and mastery of high sciences", "Bio-Tech Longevity R&D & High Theoretical Physics"),
-    (68, "Habuhiah", "Angels", 546.079, "Governs agricultural fertility, healing bodily disease, and harvests", "Precision Bio-AgTech Yield Engineering & Medical Healing"),
-    (69, "Rochel", "Angels", 554.169, "Restores lost/stolen goods, discovers lost inventory and legal origins", "Supply Chain Asset Tracking & Forensic Legal Origins Audit"),
-    (70, "Jabamiah", "Angels", 562.259, "Governs regeneration of nature, transmutations, and spiritual rebirth", "Advanced Synthetic Biology & Material Transmutation Logic"),
-    (71, "Haiaiel", "Angels", 570.349, "Protects against traitors, controls weapons of war, grants bravery", "Defense Equipment Cybersecurity & Anti-Sabotage Systems"),
-    (72, "Mumiah", "Angels", 578.439, "Brings success in medicine, chemistry, physics, and grants longevity", "Pharmaceutical Synthesis Acceleration & Structural Physics Integrity")
+    (52, "Imamiah", "Principalities", 416.639, "Destroys power of enemies, protects prisoners and travelers", "Travel Security Management & Enemy Asset Neutralization"),
+    (53, "Nanael", "Principalities", 424.729, "Governs high sciences, influences teachers, magistrates, judges", "Legal Academy Oversight & Higher Education Administration"),
+    (54, "Nithael", "Principalities", 432.819, "Governs kings, civil authorities, stability of dynasties", "Dynastic Succession Planning & Political Institutional Balance"),
+    (55, "Mebahiah", "Principalities", 440.909, "Bestows consolation, children, and moral/religious stability", "Corporate Citizenship & Community CSR Frameworks"),
+    (56, "Poyel", "Principalities", 448.999, "Fulfills desires, bestows fame, fortune, and high philosophy", "Brand Prestige Amplification & Financial Wealth Architecture"),
+    (57, "Nemamiah", "Principalities", 457.089, "Grants high prosperity, delivers captains/combatants", "Executive Leadership Resilience & High-Yield Enterprise Prosperity"),
+    (58, "Yeialel", "Archangels", 465.179, "Neutralizes sorrow, heals eye diseases, confounds traitors", "Ophthalmic Medical Engineering & Internal Threat Neutralization"),
+    (59, "Harahel", "Archangels", 473.269, "Governs treasure vaults, public archives, printing, books", "Public Institutional Archiving & Digital Vault Management"),
+    (60, "Mitzrael", "Archangels", 481.359, "Heals mental illness, delivers from persecutors, grants virtue", "Corporate Mental Wellness & Whistleblower Protection"),
+    (61, "Umabel", "Archangels", 489.449, "Governs astronomy, physics, grants friendship and travel speed", "Aerospace Physics & High-Speed Transit Logistics"),
+    (62, "Iah-Hel", "Archangels", 497.539, "Evokes evidence of truth, bestows wisdom and tranquility", "Empirical Evidence Analytics & Organizational Peace"),
+    (63, "Anauel", "Archangels", 505.629, "Protects against accidents, preserves commerce and wealth", "Commercial Asset Protection & Risk Prevention Analytics"),
+    (64, "Mehiel", "Archangels", 513.719, "Protects against wild beasts, preserves authors and teachers", "Media Creator Defense & Intellectual Content Protection"),
+    (65, "Damabiah", "Archangels", 521.809, "Governs seas, rivers, marine commerce, protects water structures", "Marine Engineering & Aquatic Environmental Preservation"),
+    (66, "Manakel", "Archangels", 529.899, "Pacifies divine anger, cures epilepsy, governs vegetation", "Pharmaceutical Neuro-Therapeutics & Botany Science"),
+    (67, "Eyael", "Archangels", 537.989, "Bestows long life, preserves high wisdom, protects learning", "Life Extension Bio-Tech & Archival Knowledge Continuity"),
+    (68, "Habuhiah", "Archangels", 546.079, "Governs agriculture, fruitfulness, heals all physical diseases", "Agritech Precision Cultivation & Holistic Healthcare"),
+    (69, "Rochel", "Angels", 554.169, "Restores stolen goods, reveals hidden thieves, tracks assets", "Asset Recovery Forensics & Anti-Theft Security Systems"),
+    (70, "Jabamiah", "Angels", 562.259, "Governs regeneration of nature, transmutes human spirit", "Biomaterial Transmutation & Human Capital Elevation"),
+    (71, "Haiaiel", "Angels", 570.349, "Confounds iron weaponry, protects against traitors and oppressors", "Advanced Metallurgical Shielding & Oppression Defense"),
+    (72, "Mumiah", "Angels", 578.439, "Grants success in all operations, governs medicine and health", "Medical Operational Success & Comprehensive Health Systems")
 ]
 
 # =====================================================================
-# 2. HELPER UTILITIES & APEX ENGINE CORE
+# 2. CALCULATION LOGIC
 # =====================================================================
-def make_http_request(url, payload, headers=None):
-    """Executes standard urllib POST requests to local NIM services."""
-    if headers is None:
-        headers = {"Content-Type": "application/json"}
-    
-    data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-    
-    try:
-        with urllib.request.urlopen(req) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8")
-        raise RuntimeError(f"HTTP Error {e.code} for {url}: {error_body}")
-    except Exception as e:
-        raise RuntimeError(f"Failed connection to {url}: {str(e)}")
-
-def query_deepseek_v4(prompt, system_prompt="You are the Apex Engine System Architecture assistant."):
-    """Queries DeepSeek-V4 via local NIM OpenAI-compatible chat completion route."""
-    payload = {
-        "model": NIM_LLM_MODEL,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 4096,
-        "extra_body": {
-            "chat_template_kwargs": {
-                "thinking": DEEPSEEK_ENABLE_THINKING,
-                "reasoning_effort": DEEPSEEK_REASONING_EFFORT
-            }
-        }
-    }
-    
-    response = make_http_request(NIM_LLM_URL, payload)
-    
-    choice = response["choices"][0]
-    message = choice.get("message", {})
-    
-    reasoning = getattr(message, "reasoning", None) or getattr(message, "reasoning_content", None) or message.get("reasoning_content")
-    content = message.get("content", "")
-    
-    return {
-        "content": content,
-        "reasoning": reasoning
-    }
-
 def calculate_matrix_alignment(vector_id, protocol_id):
-    """Calculates dimensional resonance between a Goetic vector and Angelic protocol."""
-    vector = next((v for v in DEMONIC_VECTORS if v[0] == vector_id), None)
-    protocol = next((p for p in ANGELIC_PROTOCOLS if p[0] == protocol_id), None)
+    vector = next((v for v in DEMONIC_VECTORS if v[0] == vector_id), DEMONIC_VECTORS[0])
+    protocol = next((p for p in ANGELIC_PROTOCOLS if p[0] == protocol_id), ANGELIC_PROTOCOLS[0])
     
-    if not vector or not protocol:
-        raise ValueError("Invalid Vector or Protocol ID provided.")
-        
     freq_delta = abs(vector[2] - protocol[3])
     harmonic_score = round(100 / (1 + math.log1p(freq_delta)), 4)
     
     return {
+        "vector_id": vector[0],
         "vector_name": vector[1],
-        "protocol_name": protocol[1],
         "goetic_freq": vector[2],
+        "vector_domain": vector[4],
+        "protocol_id": protocol[0],
+        "protocol_name": protocol[1],
         "angelic_freq": protocol[3],
+        "protocol_domain": protocol[4],
         "frequency_delta": round(freq_delta, 4),
         "resonance_score": harmonic_score
     }
 
 # =====================================================================
-# 3. MAIN ENGINE EXECUTION
+# 3. EXTERNAL API INFERENCE (NVIDIA NIM / OPENAI API)
 # =====================================================================
-if __name__ == "__main__":
-    print(f"[*] Initializing Apex Engine Orchestrator")
-    print(f"[*] Target LLM Endpoint: {NIM_LLM_URL}")
-    print(f"[*] Configured Architecture Model: {NIM_LLM_MODEL}")
-    
-    # Calculate resonance baseline
-    alignment = calculate_matrix_alignment(1, 1)
-    print(f"[*] Matrix Resonance Calculated: {alignment['resonance_score']}% match for {alignment['vector_name']} <-> {alignment['protocol_name']}")
-    
-    analysis_prompt = (
-        f"Perform an architectural risk audit for Goetia Vector #{DEMONIC_VECTORS[0][0]} ({DEMONIC_VECTORS[0][1]}) "
-        f"counter-balanced against Angelic Protocol #{ANGELIC_PROTOCOLS[0][0]} ({ANGELIC_PROTOCOLS[0][1]}). "
-        f"Frequency Delta: {alignment['frequency_delta']} MHz. Evaluate operational stability."
+def query_nvidia_nim(alignment_data):
+    if not NVIDIA_API_KEY:
+        print("[!] Warning: NVIDIA_API_KEY not set. Skipping live inference call.")
+        return {"status": "skipped", "reason": "No API Key provided."}
+
+    prompt = (
+        f"Perform resonance audit analysis for Node {TARGET_NODE} (Session: {SESSION_ID}).\n"
+        f"Vector: {alignment_data['vector_name']} ({alignment_data['goetic_freq']} Hz)\n"
+        f"Protocol: {alignment_data['protocol_name']} ({alignment_data['angelic_freq']} Hz)\n"
+        f"Resonance Score: {alignment_data['resonance_score']}%\n"
+        "Provide a concise technical audit synthesis."
     )
-    
+
+    payload = {
+        "model": NIM_LLM_MODEL,
+        "messages": [
+            {"role": "system", "content": "You are the Apex Engine resonance auditor."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 512
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {NVIDIA_API_KEY}"
+    }
+
     try:
-        print("[*] Dispatching query to DeepSeek-V4 model...")
-        response = query_deepseek_v4(analysis_prompt)
-        
-        if response["reasoning"]:
-            print("\n=== DeepSeek-V4 Thinking / Reasoning Output ===")
-            print(response["reasoning"])
-            
-        print("\n=== DeepSeek-V4 Analysis Response ===")
-        print(response["content"])
-    except Exception as err:
-        print(f"\n[!] Execution Error: {err}")
+        req = urllib.request.Request(NIM_LLM_URL, data=json.dumps(payload).encode("utf-8"), headers=headers)
+        with urllib.request.urlopen(req) as response:
+            res_body = json.loads(response.read().decode("utf-8"))
+            return res_body["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"[!] API Request Failed: {str(e)}")
+        return {"status": "failed", "error": str(e)}
+
+# =====================================================================
+# 4. WORDPRESS DATA PERSISTENCE FIX
+# =====================================================================
+def save_calculated_data(alignment_data, llm_response):
+    """Writes JSON calculated dependencies directly to disk so WordPress can fetch them."""
+    output_dir = "data"
+    os.makedirs(output_dir, exist_ok=True)
+
+    session_file = os.path.join(output_dir, f"audit_{SESSION_ID}.json")
+    latest_file = os.path.join(output_dir, "latest_audit.json")
+
+    payload = {
+        "status": "success",
+        "session_id": SESSION_ID,
+        "target_node": TARGET_NODE,
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "metrics": alignment_data,
+        "audit_synthesis": llm_response
+    }
+
+    # Save session specific audit
+    with open(session_file, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+    # Save standard latest_audit.json for WordPress HTTP requests
+    with open(latest_file, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+
+    print(f"[*] Audit calculated data exported successfully:")
+    print(f"    -> {session_file}")
+    print(f"    -> {latest_file}")
+
+# =====================================================================
+# 5. MAIN EXECUTION
+# =====================================================================
+def main():
+    print(f"[*] Executing Apex Engine Execution Phase...")
+    print(f"    Session ID  : {SESSION_ID}")
+    print(f"    Target Node : {TARGET_NODE}")
+
+    node_idx = int(TARGET_NODE) if TARGET_NODE.isdigit() else 1
+    alignment_data = calculate_matrix_alignment(node_idx, node_idx)
+    
+    llm_analysis = query_nvidia_nim(alignment_data)
+    
+    save_calculated_data(alignment_data, llm_analysis)
+
+if __name__ == "__main__":
+    main()
