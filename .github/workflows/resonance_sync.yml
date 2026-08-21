@@ -1,36 +1,53 @@
-name: Celsius Resonance Sync
+name: Run Apex Engine Pipeline
+
 on:
-  repository_dispatch:
-    types: [activate_audit]
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  prophetic_audit:
+  build-and-run:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
+          cache: 'pip'
 
       - name: Install Dependencies
-        run: pip install openai
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Execute Superman Engine
+      - name: Execute Apex Engine
         env:
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          TARGET_NODE: ${{ github.event.client_payload.node }}
-          SESSION_ID: ${{ github.event.client_payload.session_id }}
-        run: python scripts/apex_engine.py
+          NIM_LLM_URL: ${{ secrets.NIM_LLM_URL || 'http://localhost:8000/v1/chat/completions' }}
+          NIM_LLM_MODEL: "deepseek-ai/deepseek-v4"
+          DEEPSEEK_ENABLE_THINKING: "true"
+          DEEPSEEK_REASONING_EFFORT: "high"
+        run: |
+          python scripts/apex_engine.py
 
-      - name: Push Calculated Data
+      - name: Configure Git Bot
         run: |
           git config --global user.name "UESP-Bot"
           git config --global user.email "bot@celsiusmediagroup.co.za"
-          git add data/*.json
-          git commit -m "Calculated Audit: ${{ github.event.client_payload.session_id }}"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and Push Updated Assets
+        run: |
+          # Check for modified or untracked files
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "[*] Changes detected. Committing assets..."
+            git add -A
+            git commit -m "Auto-update via UESP-Bot [skip ci]"
+            git push origin main
+          else
+            echo "[*] Working tree clean. Nothing to commit."
+          fi
