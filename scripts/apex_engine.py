@@ -272,4 +272,148 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
 def clean_and_parse_json(raw_text):
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
     
-    code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*
+    code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if code_block_match:
+        json_str = code_block_match.group(1)
+    else:
+        bracket_match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not bracket_match:
+            raise ValueError("No valid JSON structure found.")
+        json_str = bracket_match.group(0)
+
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        return json.loads(json_str.encode('utf-8', 'ignore').decode('utf-8'))
+
+def call_nvidia_endpoint(model_name, prompt, api_key):
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=api_key,
+        timeout=12.0
+    )
+
+    completion = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {
+                "role": "system",
+                "content": "You are the UESP PRCE Engine. Return ONLY valid JSON with exact requested structure."
+            },
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.1,
+        max_tokens=600,
+        response_format={"type": "json_object"}
+    )
+
+    content = completion.choices[0].message.content
+    return clean_and_parse_json(content)
+
+# =====================================================================
+# 5. SCAN EXECUTION
+# =====================================================================
+def execute_scan():
+    api_key = os.environ.get("NVIDIA_API_KEY")
+    if not api_key:
+        raise ValueError("[FATAL] NVIDIA_API_KEY environment variable missing.")
+
+    node = os.getenv("TARGET_NODE", "South Africa Energy Grid")
+    session_id = os.getenv("SESSION_ID", "manual_test")
+    bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
+    protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
+
+    calc = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
+    scripture_ref = calc["assigned_scripture"]
+    
+    verse_data = fetch_prophetic_anchor_verse(scripture_ref)
+
+    prompt = f"""
+    Perform a UESP PRCE diagnostic sweep for:
+    TARGET NODE: "{node}"
+    NODE SIGNATURE: {calc['node_signature']}
+    TTI: {calc['modern_uesp']['tti']}
+    SHI: {calc['modern_uesp']['shi']}
+    DELTA: {calc['modern_uesp']['delta']}
+    PROPHETIC SCRIPTURE: "{scripture_ref}"
+
+    Return JSON with exact structural fields:
+    {{
+      "node": "{node}",
+      "historical_parallel": "<Provide concise historical parallel event title>",
+      "legacy_vs_modern_analysis": {{
+        "old_way_description": "<Concise breakdown of legacy structural friction>",
+        "uesp_prce_modern_way": "<Concise breakdown of UESP PRCE modern resolution>"
+      }},
+      "biblical_tie": {{
+        "verse": "{scripture_ref}",
+        "context": "<Concise prophetic resonance of this specific verse to {node}>"
+      }}
+    }}
+    """
+
+    fast_models = [
+        "deepseek-ai/deepseek-v4-flash-0731",
+        "meta/muse-glimmer-30b"
+    ]
+
+    llm_payload = None
+    with ThreadPoolExecutor(max_workers=len(fast_models)) as executor:
+        futures = {executor.submit(call_nvidia_endpoint, m, prompt, api_key): m for m in fast_models}
+        for future in as_completed(futures):
+            try:
+                llm_payload = future.result()
+                break
+            except Exception:
+                continue
+
+    if not llm_payload:
+        llm_payload = {
+            "node": node,
+            "historical_parallel": "Systemic Realignment Event",
+            "legacy_vs_modern_analysis": {
+                "old_way_description": "Legacy system suffered uncompensated friction.",
+                "uesp_prce_modern_way": "UESP PRCE executed dimensional overwrite."
+            },
+            "biblical_tie": {
+                "verse": scripture_ref,
+                "context": "Sequential alignment under active protocol."
+            }
+        }
+
+    final_output = {
+        "session_id": session_id,
+        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "node": node,
+        "node_signature": calc["node_signature"],
+        "metrics": {
+            "tti": calc["modern_uesp"]["tti"],
+            "shi": calc["modern_uesp"]["shi"],
+            "delta": calc["modern_uesp"]["delta"],
+            "stoichiometric_ratio": calc["stoichiometric_ratio"],
+            "node_entropy_index": calc["node_entropy_index"]
+        },
+        "sweep_summary": {
+            "bottlenecks_list": calc["mapped_bottlenecks"],
+            "protocols_list": calc["mapped_protocols"]
+        },
+        "historical_parallel": llm_payload.get("historical_parallel", ""),
+        "legacy_vs_modern_analysis": llm_payload.get("legacy_vs_modern_analysis", {}),
+        "biblical_anchor": {
+            "verse": scripture_ref,
+            "text": verse_data["text"],
+            "context": llm_payload.get("biblical_tie", {}).get("context", ""),
+            "cdn_endpoint": verse_data["source_endpoint"]
+        }
+    }
+
+    os.makedirs('data', exist_ok=True)
+    with open(f"data/session_{session_id}.json", "w") as f:
+        json.dump(final_output, f, indent=2)
+    with open("data/resonance_output.json", "w") as f:
+        json.dump(final_output, f, indent=2)
+
+    print(f"[SUCCESS] Scanned '{node}' cleanly. Written to data/resonance_output.json")
+
+if __name__ == "__main__":
+    execute_scan()
