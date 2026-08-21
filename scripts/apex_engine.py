@@ -5,42 +5,9 @@ import math
 import datetime
 import hashlib
 import urllib.request
-from sentence_transformers import SentenceTransformer
-from llama_cpp import Llama
 
 # =====================================================================
-# 1. LOCAL DOWNLOADABLE MODEL INITIALIZATION (OFFLINE RAG)
-# =====================================================================
-MODEL_DIR = os.path.join(os.path.expanduser("~"), ".cache", "uesp_models")
-os.makedirs(MODEL_DIR, exist_ok=True)
-
-# 1. Embeddings Model for Vector Operations
-EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
-embedder = SentenceTransformer(EMBED_MODEL_NAME, cache_folder=MODEL_DIR)
-
-# 2. Downloader & Loader for GGUF Local SLM
-MODEL_PATH = os.path.join(MODEL_DIR, "llama-3.2-1b-instruct-q4_k_m.gguf")
-MODEL_URL = "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf"
-
-def ensure_model_downloaded():
-    """Downloads local model weights if missing from local cache."""
-    if not os.path.exists(MODEL_PATH):
-        print(f"[RAG SETUP] Downloading edge model to {MODEL_PATH}...")
-        urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-        print("[RAG SETUP] Model download complete.")
-
-ensure_model_downloaded()
-
-# Load GGUF engine into memory
-llm = Llama(
-    model_path=MODEL_PATH,
-    n_ctx=2048,
-    n_threads=4,
-    verbose=False
-)
-
-# =====================================================================
-# 2. 72 DEMONIC VECTORS & 72 ANGELIC PROTOCOLS
+# 1. 72 DEMONIC VECTORS & 72 ANGELIC PROTOCOLS
 # =====================================================================
 DEMONIC_VECTORS = [
     (1, "Bael", 3.330, "Invisibility, wisdom, and leadership manipulation", "Executive Leadership & Strategic Governance Corruption"),
@@ -211,7 +178,7 @@ PROPHETIC_SCRIPTURE_MAP = [
 ]
 
 # =====================================================================
-# 3. METRIC CALCULATION ENGINE
+# 2. METRIC CALCULATION ENGINE
 # =====================================================================
 def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
     b = max(1, bottlenecks_count)
@@ -221,7 +188,7 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     hash_digest = hashlib.sha256(node_bytes).hexdigest()
     node_hash_int = int(hash_digest, 16)
 
-    # Dynamic Vector Mapping
+    # Deterministic Vector Mapping
     mapped_bottlenecks = []
     for i in range(b):
         d_idx = (node_hash_int + (i * 7)) % 72
@@ -234,7 +201,6 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
         a = ANGELIC_PROTOCOLS[a_idx]
         mapped_protocols.append(f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}")
 
-    # Metrics Calculations
     node_length_factor = math.log2(len(node_name) + 1)
     entropy_mod = round(((node_hash_int % 1000) / 1000.0) * 1.5, 4)
 
@@ -264,61 +230,24 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     }
 
 # =====================================================================
-# 4. LOCAL INFERENCE ENGINE
-# =====================================================================
-def run_local_rag_inference(node, calc):
-    prompt = f"""<|system|>
-You are the UESP PRCE Engine. Return ONLY pure JSON with exact requested keys. Single line regex strings.
-<|user|>
-Perform diagnostic sweep for target node: "{node}"
-TTI: {calc['modern_uesp']['tti']}
-SHI: {calc['modern_uesp']['shi']}
-DELTA: {calc['modern_uesp']['delta']}
-SCRIPTURE: "{calc['assigned_scripture']}"
-
-Respond using this JSON structure:
-{{
-  "historical_parallel": "Concise historical title",
-  "old_way_description": "Legacy system friction",
-  "uesp_prce_modern_way": "Modern UESP resolution",
-  "biblical_context": "Scripture resonance context"
-}}
-<|assistant|>
-"""
-    output = llm(prompt, max_tokens=350, stop=["}"], temperature=0.1)
-    raw_response = output["choices"][0]["text"] + "}"
-
-    try:
-        match = re.search(r"\{.*\}", raw_response, re.DOTALL)
-        return json.loads(match.group(0)) if match else {}
-    except Exception:
-        return {
-            "historical_parallel": "Systemic Infrastructure Realignment Event",
-            "old_way_description": "Legacy system suffered capacity degradation under manual uncompensated friction.",
-            "uesp_prce_modern_way": "UESP PRCE executed automated protocol deployment and resonance calibration.",
-            "biblical_context": "Sequential alignment under active prophet core protocol."
-        }
-
-# =====================================================================
-# 5. SCAN EXECUTION & DASHBOARD INTEGRATION
+# 3. SCAN EXECUTION & DASHBOARD-SAFE MAPPING
 # =====================================================================
 def execute_scan():
     node = os.getenv("TARGET_NODE", "South Africa Energy Grid")
-    session_id = os.getenv("SESSION_ID", "local_rag_test")
+    session_id = os.getenv("SESSION_ID", "github_action_run")
     bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
     protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
 
     calc = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
-    rag_data = run_local_rag_inference(node, calc)
 
-    # Consolidated JSON output mapped to prevent dashboard "undefined" state
+    # Ensures both direct keys and nested structures match frontend expected parameters
     final_output = {
         "session_id": session_id,
         "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "node": node,
         "node_signature": calc["node_signature"],
 
-        # Explicit Top-Level Fields for Legacy Dashboard Component Mapping
+        # Explicit Top-Level Fields (Prevents 'undefined' on dashboard renderers)
         "tti": calc["modern_uesp"]["tti"],
         "shi": calc["modern_uesp"]["shi"],
         "delta": calc["modern_uesp"]["delta"],
@@ -335,15 +264,15 @@ def execute_scan():
             "bottlenecks_list": calc["mapped_bottlenecks"],
             "protocols_list": calc["mapped_protocols"]
         },
-        "historical_parallel": rag_data.get("historical_parallel", "Systemic Infrastructure Realignment"),
+        "historical_parallel": "Systemic Infrastructure & Network Realignment",
         "legacy_vs_modern_analysis": {
-            "old_way_description": rag_data.get("old_way_description", ""),
-            "uesp_prce_modern_way": rag_data.get("uesp_prce_modern_way", "")
+            "old_way_description": "Legacy system suffered manual capacity friction and uncompensated bottleneck overhead.",
+            "uesp_prce_modern_way": "UESP PRCE executed automated protocol alignment and real-time resonance restoration."
         },
         "biblical_anchor": {
             "verse": calc["assigned_scripture"],
-            "text": "Prophetic anchor verse verified via core spectrum.",
-            "context": rag_data.get("biblical_context", "")
+            "text": "Prophetic anchor verse verified.",
+            "context": f"Direct resonance mapping across core node network for {node}."
         }
     }
 
@@ -353,7 +282,7 @@ def execute_scan():
     with open("data/resonance_output.json", "w") as f:
         json.dump(final_output, f, indent=2)
 
-    print(f"[SUCCESS] Scanned '{node}' locally via GGUF RAG. Written to data/resonance_output.json")
+    print(f"[SUCCESS] Scanned '{node}' cleanly. Output written to data/resonance_output.json")
 
 if __name__ == "__main__":
     execute_scan()
