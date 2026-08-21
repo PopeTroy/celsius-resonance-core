@@ -1,34 +1,15 @@
 import os
 import json
+import re
 import math
 import datetime
 import hashlib
 import urllib.request
-import urllib.parse
-import urllib.error
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from openai import OpenAI
 
 # =====================================================================
-# 0. CONFIGURATION (LOCAL NVIDIA NIM ENDPOINTS & MODEL SETTINGS)
-# =====================================================================
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
-NIM_LLM_URL = os.getenv("NIM_LLM_URL", "http://localhost:8000/v1/chat/completions")
-NIM_EMBED_URL = os.getenv("NIM_EMBED_URL", "http://localhost:8001/v1/embeddings")
-NIM_RERANK_URL = os.getenv("NIM_RERANK_URL", "http://localhost:8002/v1/rerank")
-
-# Configured for DeepSeek-V4 inference via NIM
-NIM_LLM_MODEL = os.getenv("NIM_LLM_MODEL", "deepseek-ai/deepseek-v4")
-NIM_EMBED_MODEL = os.getenv("NIM_EMBED_MODEL", "nvidia/nv-embed-qa")
-NIM_RERANK_MODEL = os.getenv("NIM_RERANK_MODEL", "nvidia/rerank-qa-mistral-4b")
-
-# DeepSeek Reasoning Toggles
-DEEPSEEK_ENABLE_THINKING = os.getenv("DEEPSEEK_ENABLE_THINKING", "true").lower() == "true"
-DEEPSEEK_REASONING_EFFORT = os.getenv("DEEPSEEK_REASONING_EFFORT", "high")
-
-TARGET_NODE = os.getenv("TARGET_NODE", "1")
-SESSION_ID = os.getenv("SESSION_ID", "default_session")
-
-# =====================================================================
-# 1. DATA TABLES (72 GOETIA VECTORS & 72 ANGELIC PROTOCOLS)
+# 1. THE 72 DEMONIC VECTORS (GOETIA SPECTRUM)
 # =====================================================================
 DEMONIC_VECTORS = [
     (1, "Bael", 3.330, "Invisibility, wisdom, and leadership manipulation", "Executive Leadership & Strategic Governance Corruption"),
@@ -105,6 +86,9 @@ DEMONIC_VECTORS = [
     (72, "Andromalius", 239.760, "Catches thieves, returns stolen goods, reveals hidden conspiracies", "Loss Prevention Operations & Counter-Intelligence Forensics")
 ]
 
+# =====================================================================
+# 2. THE 72 ANGELIC PROTOCOLS (SHEM HAMEPHORASH SPECTRUM)
+# =====================================================================
 ANGELIC_PROTOCOLS = [
     (1, "Vehuiah", "Seraphim", 4.045, "Illuminates mind, grants willpower, initiates divine action", "Executive Willpower & Innovation Initiation Leadership"),
     (2, "Jeliel", "Seraphim", 12.135, "Fosters harmony, quiets popular sedition, grants peace", "Social Harmony Enforcement & Civil Sedition Neutralization"),
@@ -157,138 +141,345 @@ ANGELIC_PROTOCOLS = [
     (49, "Vehuel", "Principalities", 392.369, "Exalts grand souls, bestows high philosophy and art", "Executive Talent Mentorship & Fine Arts Sponsorship"),
     (50, "Daniel", "Principalities", 400.459, "Obtains divine mercy, comforts sorrow, grants eloquence", "Crisis Communication Response & Corporate Stakeholder Solace"),
     (51, "Hahasiah", "Principalities", 408.549, "Reveals arcana of medicine, chemistry, and physics", "Quantum Chemistry Synthesis & Advanced Pharmacology Discovery"),
-    (52, "Imamiah", "Principalities", 416.639, "Destroys power of enemies, protects prisoners and travelers", "Travel Security Management & Enemy Asset Neutralization"),
-    (53, "Nanael", "Principalities", 424.729, "Governs high sciences, influences teachers, magistrates, judges", "Legal Academy Oversight & Higher Education Administration"),
-    (54, "Nithael", "Principalities", 432.819, "Governs kings, civil authorities, stability of dynasties", "Dynastic Succession Planning & Political Institutional Balance"),
-    (55, "Mebahiah", "Principalities", 440.909, "Bestows consolation, children, and moral/religious stability", "Corporate Citizenship & Community CSR Frameworks"),
-    (56, "Poyel", "Principalities", 448.999, "Fulfills desires, bestows fame, fortune, and high philosophy", "Brand Prestige Amplification & Financial Wealth Architecture"),
-    (57, "Nemamiah", "Principalities", 457.089, "Grants high prosperity, delivers captains/combatants", "Executive Leadership Resilience & High-Yield Enterprise Prosperity"),
-    (58, "Yeialel", "Archangels", 465.179, "Neutralizes sorrow, heals eye diseases, confounds traitors", "Ophthalmic Medical Engineering & Internal Threat Neutralization"),
-    (59, "Harahel", "Archangels", 473.269, "Governs treasure vaults, public archives, printing, books", "Public Institutional Archiving & Digital Vault Management"),
-    (60, "Mitzrael", "Archangels", 481.359, "Heals mental illness, delivers from persecutors, grants virtue", "Corporate Mental Wellness & Whistleblower Protection"),
-    (61, "Umabel", "Archangels", 489.449, "Governs astronomy, physics, grants friendship and travel speed", "Aerospace Physics & High-Speed Transit Logistics"),
-    (62, "Iah-Hel", "Archangels", 497.539, "Evokes evidence of truth, bestows wisdom and tranquility", "Empirical Evidence Analytics & Organizational Peace"),
-    (63, "Anauel", "Archangels", 505.629, "Protects against accidents, preserves commerce and wealth", "Commercial Asset Protection & Risk Prevention Analytics"),
-    (64, "Mehiel", "Archangels", 513.719, "Protects against wild beasts, preserves authors and teachers", "Media Creator Defense & Intellectual Content Protection"),
-    (65, "Damabiah", "Archangels", 521.809, "Governs seas, rivers, marine commerce, protects water structures", "Marine Engineering & Aquatic Environmental Preservation"),
-    (66, "Manakel", "Archangels", 529.899, "Pacifies divine anger, cures epilepsy, governs vegetation", "Pharmaceutical Neuro-Therapeutics & Botany Science"),
-    (67, "Eyael", "Archangels", 537.989, "Bestows long life, preserves high wisdom, protects learning", "Life Extension Bio-Tech & Archival Knowledge Continuity"),
-    (68, "Habuhiah", "Archangels", 546.079, "Governs agriculture, fruitfulness, heals all physical diseases", "Agritech Precision Cultivation & Holistic Healthcare"),
-    (69, "Rochel", "Angels", 554.169, "Restores stolen goods, reveals hidden thieves, tracks assets", "Asset Recovery Forensics & Anti-Theft Security Systems"),
-    (70, "Jabamiah", "Angels", 562.259, "Governs regeneration of nature, transmutes human spirit", "Biomaterial Transmutation & Human Capital Elevation"),
-    (71, "Haiaiel", "Angels", 570.349, "Confounds iron weaponry, protects against traitors and oppressors", "Advanced Metallurgical Shielding & Oppression Defense"),
-    (72, "Mumiah", "Angels", 578.439, "Grants success in all operations, governs medicine and health", "Medical Operational Success & Comprehensive Health Systems")
+    (52, "Imamiah", "Principalities", 416.639, "Destroys enemy power, protects prisoners and travelers", "Transportation Security Infrastructure & Hostage Negotiation"),
+    (53, "Nanael", "Principalities", 424.729, "Governs higher education, philosophy, and judicial truth", "University Curriculum Reform & Higher Judicial Education"),
+    (54, "Nithael", "Principalities", 432.819, "Governs temporal rulers, bestows long stable dynasties", "Sovereign Succession Planning & Institutional Dynasty Stability"),
+    (55, "Mebahiah", "Principalities", 440.909, "Grants consolation, bestows moral and spiritual fruitfulness", "Institutional Ethics Oversight & Corporate Philanthropy"),
+    (56, "Poyel", "Principalities", 448.999, "Fulfills desires, grants wealth, fame, and high philosophy", "Capital Wealth Generation & High Executive Reputation"),
+    (57, "Nemamiah", "Archangels", 457.089, "Grants great prosperity, liberates captives from systemic traps", "Systemic Debt Trap Release & Economic Prosperity Generation"),
+    (58, "Yeialel", "Archangels", 465.179, "Heals eye infirmities, confounds dark deceivers", "Ophthalmology Bio-Tech & Deception Detection Systems"),
+    (59, "Harahel", "Archangels", 473.269, "Governs archives, libraries, public education, and wealth", "High-Volume Archival Repositories & Wealth Education Systems"),
+    (60, "Mitzrael", "Archangels", 481.359, "Heals mental infirmities, enforces fidelity and obedience", "Neurological Rehabilitation & Organizational Integrity Enforcement"),
+    (61, "Umabel", "Archangels", 489.449, "Governs physics, astronomy, and friendship alignment", "Applied Quantum Physics & Inter-State Alliance Strategy"),
+    (62, "Iah-Hel", "Archangels", 497.539, "Illuminates mind with wisdom, grants tranquil solitude", "Cognitive Deep Work Optimization & Wisdom Knowledge Base"),
+    (63, "Anauel", "Archangels", 505.629, "Protects against accidents, preserves commerce and trade", "Supply Chain Disaster Protection & Commerce Preservation"),
+    (64, "Mehiel", "Archangels", 513.719, "Protects against wild beasts, inspires authors and printing", "Bio-Hazard Defense & Computational Mass Media Distribution"),
+    (65, "Damabiah", "Angels", 521.809, "Governs waters, rivers, seas, and maritime enterprise", "Oceanic Maritime Engineering & Coastal Resource Preservation"),
+    (66, "Manakel", "Angels", 529.899, "Cures epilepsy, appeases divine anger, governs vegetation", "Neuro-Somatic Therapeutics & Precision Agriculture Automation"),
+    (67, "Eyael", "Angels", 537.989, "Consoles in adversity, dominates high sciences and astronomy", "Quantum Science Leadership & Enterprise Adversity Resilience"),
+    (68, "Habuhiah", "Angels", 546.079, "Governs health, agricultural fertility, and healing wounds", "Agricultural Fertility Enhancement & Trauma Wound Healing Bio-Tech"),
+    (69, "Rochel", "Angels", 554.169, "Restores stolen goods, finds lost inheritances and names", "Asset Recovery Forensics & Heritage Intellectual Property Restitution"),
+    (70, "Jabamiah", "Angels", 562.259, "Governs regeneration of nature, transmutes human spirit", "Ecological Systemic Restoration & Regenerative Leadership Training"),
+    (71, "Haiaiel", "Angels", 570.349, "Confounds wicked warriors, protects enterprise weapons", "Defense Arsenal Shielding & Strategic Adversary Neutralization"),
+    (72, "Mumiah", "Angels", 578.439, "Brings success to all operations, grants longevity and health", "Operational Execution Excellence & Organizational Longevity Assurance")
 ]
 
 # =====================================================================
-# 2. CALCULATION LOGIC
+# 3. PROPHETIC ANCHOR ENDPOINT INTEGRATION (JSDELIVR BIBLE API)
 # =====================================================================
-def calculate_matrix_alignment(vector_id, protocol_id):
-    vector = next((v for v in DEMONIC_VECTORS if v[0] == vector_id), DEMONIC_VECTORS[0])
-    protocol = next((p for p in ANGELIC_PROTOCOLS if p[0] == protocol_id), ANGELIC_PROTOCOLS[0])
+def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
+    """
+    Fetches exact scripture text from jsDelivr Bible API CDN endpoints.
+    Endpoint 1 (Verse): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}/verses/${verse}.json
+    Endpoint 2 (Chapter): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}.json
+    """
+    try:
+        match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
+        if not match:
+            return {"reference": verse_ref, "text": None, "source_endpoint": None}
+
+        book_raw = match.group(1).strip().lower().replace(" ", "")
+        chapter = match.group(2)
+        verse = match.group(3)
+
+        verse_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}/verses/{verse}.json"
+        
+        req = urllib.request.Request(verse_url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                data = json.loads(resp.read().decode('utf-8'))
+                text = data.get("text", "").strip()
+                return {
+                    "reference": f"{data.get('book', {}).get('name', book_raw)} {chapter}:{verse}",
+                    "text": text,
+                    "source_endpoint": verse_url
+                }
+
+    except Exception:
+        try:
+            match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
+            if match:
+                book_raw = match.group(1).strip().lower().replace(" ", "")
+                chapter = match.group(2)
+                verse_num = int(match.group(3))
+
+                chapter_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}.json"
+                req = urllib.request.Request(chapter_url, headers={'User-Agent': 'Mozilla/5.0'})
+                
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    if resp.status == 200:
+                        data = json.loads(resp.read().decode('utf-8'))
+                        verses_list = data if isinstance(data, list) else data.get("verses", [])
+                        for v in verses_list:
+                            if str(v.get("verse")) == str(verse_num):
+                                return {
+                                    "reference": f"{book_raw.capitalize()} {chapter}:{verse_num}",
+                                    "text": v.get("text", "").strip(),
+                                    "source_endpoint": chapter_url
+                                }
+        except Exception as e:
+            print(f"[WARN] Failed to retrieve CDN prophetic anchor verse: {e}")
+
+    return {"reference": verse_ref, "text": None, "source_endpoint": None}
+
+# =====================================================================
+# 4. METRIC CALCULATION CORE WITH 72 ENTITY MAPPINGS
+# =====================================================================
+def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
+    b = max(1, bottlenecks_count)
+    p = max(1, protocols_count)
+    stoichiometric_ratio = round(b / p, 4)
+
+    node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
     
-    freq_delta = abs(vector[2] - protocol[3])
-    harmonic_score = round(100 / (1 + math.log1p(freq_delta)), 4)
-    
+    mapped_bottlenecks = []
+    for i in range(b):
+        d_idx = (node_hash + (i * 7)) % 72
+        d = DEMONIC_VECTORS[d_idx]
+        mapped_bottlenecks.append(f"Friction Vector #{d[0]} {d[1]}: {d[4]}")
+
+    mapped_protocols = []
+    for i in range(p):
+        a_idx = (node_hash + (i * 13)) % 72
+        a = ANGELIC_PROTOCOLS[a_idx]
+        mapped_protocols.append(f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}")
+
+    s_node = 1.05 + ((node_hash % 1400) / 1000.0)
+
+    friction_coefficient = stoichiometric_ratio * s_node
+    tti_raw = 100.0 - (friction_coefficient * 4.25)
+    modern_tti = max(15.0, min(99.95, round(tti_raw, 2)))
+
+    shi_raw = 100.0 - (stoichiometric_ratio * 0.85)
+    modern_shi = max(20.0, min(99.99, round(shi_raw, 2)))
+
+    modern_delta = round(abs(modern_tti - modern_shi), 2)
+
+    legacy_tti = round(max(5.0, modern_tti * 0.62), 2)
+    legacy_shi = round(max(5.0, modern_shi * 0.42), 2)
+    legacy_delta = round(abs(legacy_tti - legacy_shi), 2)
+
     return {
-        "vector_id": vector[0],
-        "vector_name": vector[1],
-        "goetic_freq": vector[2],
-        "vector_domain": vector[4],
-        "protocol_id": protocol[0],
-        "protocol_name": protocol[1],
-        "angelic_freq": protocol[3],
-        "protocol_domain": protocol[4],
-        "frequency_delta": round(freq_delta, 4),
-        "resonance_score": harmonic_score
+        "bottlenecks_found": b,
+        "protocols_applied": p,
+        "stoichiometric_ratio": stoichiometric_ratio,
+        "node_entropy_index": round(s_node, 3),
+        "mapped_bottlenecks": mapped_bottlenecks,
+        "mapped_protocols": mapped_protocols,
+        "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta},
+        "legacy_old": {"tti": legacy_tti, "shi": legacy_shi, "delta": legacy_delta}
+    }
+
+def synthesize_hybrid_payload(raw_data, calculated_metrics):
+    modern = calculated_metrics["modern_uesp"]
+    node_name = raw_data.get("node", "Target System Node")
+
+    bottlenecks = calculated_metrics.get("mapped_bottlenecks", raw_data.get("sweep_summary", {}).get("bottlenecks_list", []))
+    protocols = calculated_metrics.get("mapped_protocols", raw_data.get("sweep_summary", {}).get("protocols_list", []))
+
+    old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "")
+    modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "")
+    
+    old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
+    modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
+
+    hist_parallel = raw_data.get("historical_parallel", "")
+    biblical_obj = raw_data.get("biblical_tie", {})
+    
+    raw_verse_cite = biblical_obj.get("verse", "Isaiah 58:12")
+    anchor_verse_data = fetch_prophetic_anchor_verse(raw_verse_cite)
+
+    return {
+        "node": node_name,
+        "tti": modern["tti"],
+        "shi": modern["shi"],
+        "delta": modern["delta"],
+        "historical_parallel": hist_parallel,
+        "era_resolution": old_desc,
+        "modern_resolution": modern_desc,
+        "biblical_tie": {
+            "verse": anchor_verse_data["reference"],
+            "scripture_text": anchor_verse_data["text"],
+            "cdn_endpoint": anchor_verse_data["source_endpoint"],
+            "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
+        },
+        "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Dimensional Overwrite & Structural Alignment'}",
+        "sweep_summary": {
+            "bottlenecks_list": bottlenecks,
+            "protocols_list": protocols
+        },
+        "legacy_vs_modern_analysis": {
+            "old_way_description": old_desc,
+            "uesp_prce_modern_way": modern_desc
+        },
+        "metrics": calculated_metrics,
+        "calculated_metrics": calculated_metrics,
+        "session_id": raw_data.get("session_id", "")
     }
 
 # =====================================================================
-# 3. EXTERNAL API INFERENCE (NVIDIA NIM / OPENAI API)
+# 5. ROBUST JSON PARSER FIX FOR LLM ARTIFACTS
 # =====================================================================
-def query_nvidia_nim(alignment_data):
-    if not NVIDIA_API_KEY:
-        print("[!] Warning: NVIDIA_API_KEY not set. Skipping live inference call.")
-        return {"status": "skipped", "reason": "No API Key provided."}
-
-    prompt = (
-        f"Perform resonance audit analysis for Node {TARGET_NODE} (Session: {SESSION_ID}).\n"
-        f"Vector: {alignment_data['vector_name']} ({alignment_data['goetic_freq']} Hz)\n"
-        f"Protocol: {alignment_data['protocol_name']} ({alignment_data['angelic_freq']} Hz)\n"
-        f"Resonance Score: {alignment_data['resonance_score']}%\n"
-        "Provide a concise technical audit synthesis."
-    )
-
-    payload = {
-        "model": NIM_LLM_MODEL,
-        "messages": [
-            {"role": "system", "content": "You are the Apex Engine resonance auditor."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.2,
-        "max_tokens": 512
-    }
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {NVIDIA_API_KEY}"
-    }
+def clean_and_parse_json(raw_text):
+    """
+    Robust JSON parser designed to handle LLM artifacts, unescaped quotes,
+    newlines within string values, and missing code block syntax.
+    """
+    text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
+    
+    code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if code_block_match:
+        json_str = code_block_match.group(1)
+    else:
+        bracket_match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not bracket_match:
+            raise ValueError("No valid JSON structure found in LLM response.")
+        json_str = bracket_match.group(0)
 
     try:
-        req = urllib.request.Request(NIM_LLM_URL, data=json.dumps(payload).encode("utf-8"), headers=headers)
-        with urllib.request.urlopen(req) as response:
-            res_body = json.loads(response.read().decode("utf-8"))
-            return res_body["choices"][0]["message"]["content"]
-    except Exception as e:
-        print(f"[!] API Request Failed: {str(e)}")
-        return {"status": "failed", "error": str(e)}
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        pass
 
-# =====================================================================
-# 4. WORDPRESS DATA PERSISTENCE FIX
-# =====================================================================
-def save_calculated_data(alignment_data, llm_response):
-    """Writes JSON calculated dependencies directly to disk so WordPress can fetch them."""
-    output_dir = "data"
-    os.makedirs(output_dir, exist_ok=True)
+    repaired = re.sub(
+        r'(?<=:\s*")([\s\S]*?)(?="\s*(?:,\s*"|\}))',
+        lambda m: m.group(1).replace('\n', '\\n').replace('\r', '').replace('\t', '\\t').replace('"', '\\"'),
+        json_str
+    )
 
-    session_file = os.path.join(output_dir, f"audit_{SESSION_ID}.json")
-    latest_file = os.path.join(output_dir, "latest_audit.json")
+    try:
+        return json.loads(repaired)
+    except json.JSONDecodeError:
+        cleaned_lines = []
+        for line in json_str.splitlines():
+            cleaned_lines.append(line)
+        
+        repaired_fallback = "\n".join(cleaned_lines)
+        return json.loads(repaired_fallback)
 
-    payload = {
-        "status": "success",
-        "session_id": SESSION_ID,
-        "target_node": TARGET_NODE,
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
-        "metrics": alignment_data,
-        "audit_synthesis": llm_response
-    }
+def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=api_key,
+        timeout=120.0
+    )
 
-    # Save session specific audit
-    with open(session_file, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-
-    # Save standard latest_audit.json for WordPress HTTP requests
-    with open(latest_file, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-
-    print(f"[*] Audit calculated data exported successfully:")
-    print(f"    -> {session_file}")
-    print(f"    -> {latest_file}")
-
-# =====================================================================
-# 5. MAIN EXECUTION
-# =====================================================================
-def main():
-    print(f"[*] Executing Apex Engine Execution Phase...")
-    print(f"    Session ID  : {SESSION_ID}")
-    print(f"    Target Node : {TARGET_NODE}")
-
-    node_idx = int(TARGET_NODE) if TARGET_NODE.isdigit() else 1
-    alignment_data = calculate_matrix_alignment(node_idx, node_idx)
+    print(f"[DISPATCH] Executing Sequential Node Sweep via model: {model_name}")
     
-    llm_analysis = query_nvidia_nim(alignment_data)
+    completion = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are the UESP PRCE Engine. Explain resolutions in pure, direct historical and "
+                    "structural terms. DO NOT mention thermodynamics, quantum mechanics, Brus equations, "
+                    "or mathematical formulas in your explanations. Output strictly valid JSON."
+                )
+            },
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        max_tokens=1500
+    )
+
+    content = completion.choices[0].message.content
+    raw_data = clean_and_parse_json(content)
+    final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
+
+    return model_name, final_payload
+
+def execute_scan():
+    api_key = os.environ.get("NVIDIA_API_KEY")
+    if not api_key:
+        raise ValueError("[FATAL] NVIDIA_API_KEY environment variable is missing.")
+
+    node = os.getenv("TARGET_NODE", "South Africa Energy Grid")
+    session_id = os.getenv("SESSION_ID", "manual_test")
+
+    bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
+    protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
+
+    calculated_metrics = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
     
-    save_calculated_data(alignment_data, llm_analysis)
+    prompt = f"""
+    Perform a UESP PRCE diagnostic sweep for TARGET NODE: {node}.
+    
+    SEQUENTIAL CALCULATED METRICS & ENTITY SPECTRUMS:
+    - Bottlenecks Found: {bottlenecks_count} ({', '.join(calculated_metrics['mapped_bottlenecks'][:3])})
+    - Protocols Applied: {protocols_count} ({', '.join(calculated_metrics['mapped_protocols'][:3])})
+    - Stoichiometric Friction Ratio: {calculated_metrics['stoichiometric_ratio']}
+    - Node Historical Entropy Index: {calculated_metrics['node_entropy_index']}
+    - Calculated TTI: {calculated_metrics['modern_uesp']['tti']}
+    - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
+    - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
+
+    STRICT INSTRUCTIONS:
+    1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
+    2. 'old_way_description': Explain clearly how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
+    3. 'uesp_prce_modern_way': Explain clearly how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
+    4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct prophetic resonance with {node}'s structural restoration.
+
+    DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
+
+    OUTPUT STRICTLY IN THIS JSON FORMAT:
+    {{
+      "node": "{node}",
+      "historical_parallel": "Parallel Era: The Six-Day War and Territorial Reconfiguration of June 5-10, 1967 AD",
+      "sweep_summary": {{
+        "bottlenecks_list": {json.dumps(calculated_metrics['mapped_bottlenecks'])},
+        "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])}
+      }},
+      "legacy_vs_modern_analysis": {{
+        "old_way_description": "Pure structural explanation of legacy friction and system failures...",
+        "uesp_prce_modern_way": "Pure structural explanation of UESP PRCE modern dimensional overwrite resolution..."
+      }},
+      "biblical_tie": {{
+        "verse": "Isaiah 58:12",
+        "context": "Direct prophetic explanation of scripture resonance..."
+      }},
+      "session_id": "{session_id}"
+    }}
+    """
+
+    nvidia_models = [
+        "nvidia/nemotron-3-ultra-550b-a55b",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "z-ai/glm-5.2"
+    ]
+
+    raw_output = None
+    winning_model = None
+
+    print(f"[PARALLEL START] Racing {len(nvidia_models)} NVIDIA NIM endpoints...")
+    with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
+        futures = {
+            executor.submit(
+                call_nvidia_endpoint, model, prompt, api_key, calculated_metrics
+            ): model for model in nvidia_models
+        }
+
+        for future in as_completed(futures):
+            model_name = futures[future]
+            try:
+                winning_model, raw_output = future.result()
+                print(f"[VICTORY] Generated unified payload via endpoint: {winning_model}")
+                break
+            except Exception as err:
+                print(f"[WARN] Endpoint ({model_name}) skipped: {err}")
+
+    if not raw_output:
+        raise RuntimeError("[CRITICAL] All endpoint executions failed.")
+
+    raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    os.makedirs('data', exist_ok=True)
+    with open(f"data/session_{session_id}.json", "w") as f:
+        json.dump(raw_output, f, indent=2)
+    with open("data/resonance_output.json", "w") as f:
+        json.dump(raw_output, f, indent=2)
+
+    print(f"[SUCCESS] Scan complete for '{node}'. Written to data/resonance_output.json")
 
 if __name__ == "__main__":
-    main()
+    execute_scan()
