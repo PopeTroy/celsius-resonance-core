@@ -4,10 +4,11 @@ import math
 import datetime
 import hashlib
 import urllib.request
+import urllib.parse
 import urllib.error
 
 # =====================================================================
-# 0. NVIDIA NIM ENDPOINT CONFIGURATION (LOCAL CONTAINERS)
+# 0. CONFIGURATION (LOCAL NVIDIA NIM ENDPOINTS & BIBLE API)
 # =====================================================================
 NIM_LLM_URL = os.getenv("NIM_LLM_URL", "http://localhost:8000/v1/chat/completions")
 NIM_EMBED_URL = os.getenv("NIM_EMBED_URL", "http://localhost:8001/v1/embeddings")
@@ -18,7 +19,7 @@ NIM_EMBED_MODEL = os.getenv("NIM_EMBED_MODEL", "nvidia/nv-embed-qa")
 NIM_RERANK_MODEL = os.getenv("NIM_RERANK_MODEL", "nvidia/rerank-qa-mistral-4b")
 
 # =====================================================================
-# 1. 72 DEMONIC VECTORS & 72 ANGELIC PROTOCOLS
+# 1. DATA TABLES (72 VECTORS, 72 PROTOCOLS, SCRIPTURE REFERENCE MAP)
 # =====================================================================
 DEMONIC_VECTORS = [
     (1, "Bael", 3.330, "Invisibility, wisdom, and leadership manipulation", "Executive Leadership & Strategic Governance Corruption"),
@@ -189,10 +190,10 @@ PROPHETIC_SCRIPTURE_MAP = [
 ]
 
 # =====================================================================
-# 2. NVIDIA NIM RAG CALL HELPERS
+# 2. API REQUEST HELPERS (NVIDIA NIM & BIBLE API)
 # =====================================================================
 def make_post_request(url, payload, timeout=5):
-    """Generic HTTP POST helper using standard library urllib."""
+    """Generic HTTP POST helper using standard urllib."""
     data = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(
         url,
@@ -209,11 +210,8 @@ def make_post_request(url, payload, timeout=5):
     return None
 
 def fetch_nim_embedding(text):
-    """Gets document embedding vector from NV-Embed-QA NIM."""
-    payload = {
-        "model": NIM_EMBED_MODEL,
-        "input": text
-    }
+    """Retrieves document embedding vector from NV-Embed-QA NIM."""
+    payload = {"model": NIM_EMBED_MODEL, "input": text}
     res = make_post_request(NIM_EMBED_URL, payload)
     if res and "data" in res and len(res["data"]) > 0:
         return res["data"][0]["embedding"]
@@ -221,14 +219,9 @@ def fetch_nim_embedding(text):
 
 def fetch_nim_rerank(query, documents):
     """Reranks candidate strings using NV-Rerank-QA NIM."""
-    payload = {
-        "model": NIM_RERANK_MODEL,
-        "query": query,
-        "documents": documents
-    }
+    payload = {"model": NIM_RERANK_MODEL, "query": query, "documents": documents}
     res = make_post_request(NIM_RERANK_URL, payload)
     if res and "results" in res:
-        # Sort documents based on returned relevance score index
         sorted_docs = [documents[r["index"]] for r in res["results"]]
         return sorted_docs
     return documents
@@ -255,8 +248,28 @@ def generate_nim_llm_analysis(node_name, bottlenecks, protocols):
         return res["choices"][0]["message"]["content"].strip()
     return None
 
+def fetch_bible_verse_text(reference_str):
+    """
+    Fetches exact scripture text dynamically via public Bible API.
+    Provides local fallback if network/API is unavailable.
+    """
+    try:
+        formatted_ref = urllib.parse.quote(reference_str)
+        url = f"https://bible-api.com/{formatted_ref}?translation=kjv"
+        req = urllib.request.Request(url, headers={'User-Agent': 'UESP-PRCE-Engine/1.0'})
+        with urllib.request.urlopen(req, timeout=4) as response:
+            if response.status == 200:
+                data = json.loads(response.read().decode('utf-8'))
+                text = data.get('text', '').strip().replace('\n', ' ')
+                if text:
+                    return text
+    except Exception as e:
+        print(f"[BIBLE API LOG] Fetch fallback for {reference_str}: {e}")
+    
+    return f"Prophetic baseline reference established and active for {reference_str}."
+
 # =====================================================================
-# 3. METRIC CALCULATION ENGINE (WITH NIM RAG ENHANCEMENT)
+# 3. METRIC CALCULATION ENGINE
 # =====================================================================
 def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
     b = max(1, bottlenecks_count)
@@ -268,18 +281,18 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
 
     # 1. Deterministic Vector Candidate Mapping
     candidate_bottlenecks = []
-    for i in range(b * 2):  # Fetch candidate pool
+    for i in range(b * 2):
         d_idx = (node_hash_int + (i * 7)) % 72
         d = DEMONIC_VECTORS[d_idx]
         candidate_bottlenecks.append(f"Friction Vector #{d[0]} {d[1]}: {d[4]}")
 
     candidate_protocols = []
-    for i in range(p * 2):  # Fetch candidate pool
+    for i in range(p * 2):
         a_idx = (node_hash_int + (i * 13)) % 72
         a = ANGELIC_PROTOCOLS[a_idx]
         candidate_protocols.append(f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}")
 
-    # 2. Try RAG Reranking via NVIDIA NIM (Fallback to slicing if container offline)
+    # 2. NIM RAG Reranking (Fallback to slice if container offline)
     print(f"[NIM LOG] Querying NV-Rerank NIM at {NIM_RERANK_URL}...")
     reranked_bottlenecks = fetch_nim_rerank(node_name, candidate_bottlenecks)
     mapped_bottlenecks = reranked_bottlenecks[:b]
@@ -287,11 +300,10 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     reranked_protocols = fetch_nim_rerank(node_name, candidate_protocols)
     mapped_protocols = reranked_protocols[:p]
 
-    # 3. Try Vector Embedding via NVIDIA NIM
+    # 3. NIM Vector Embedding
     print(f"[NIM LOG] Fetching embeddings from {NIM_EMBED_URL}...")
     embedding = fetch_nim_embedding(node_name)
     if embedding and len(embedding) > 0:
-        # Derive entropy modifier dynamically from model embedding weights
         entropy_mod = round(abs(sum(embedding[:10])) % 1.5, 4)
     else:
         entropy_mod = round(((node_hash_int % 1000) / 1000.0) * 1.5, 4)
@@ -310,7 +322,7 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     scripture_idx = node_hash_int % len(PROPHETIC_SCRIPTURE_MAP)
     assigned_scripture = PROPHETIC_SCRIPTURE_MAP[scripture_idx]
 
-    # 4. Try LLM Generation via Llama 3 NIM
+    # 4. NIM LLM Generation
     print(f"[NIM LOG] Querying LLM NIM at {NIM_LLM_URL}...")
     nim_llm_text = generate_nim_llm_analysis(node_name, mapped_bottlenecks, mapped_protocols)
 
@@ -328,7 +340,7 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     }
 
 # =====================================================================
-# 4. SCAN EXECUTION & DASHBOARD-SAFE OUTPUT
+# 4. EXECUTION & COMPLETE DASHBOARD PAYLOAD GENERATION
 # =====================================================================
 def execute_scan():
     node = os.getenv("TARGET_NODE", "South Africa Energy Grid")
@@ -338,10 +350,16 @@ def execute_scan():
 
     calc = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
 
-    # Use NIM LLM generated analysis if available, otherwise default to baseline text
-    modern_analysis_text = calc["nim_llm_analysis"] if calc["nim_llm_analysis"] else (
-        "UESP PRCE executed automated protocol alignment, NV-Embed context vector mapping, "
-        "and real-time resonance restoration."
+    # Dynamic Scripture API Fetch
+    verse_ref = calc["assigned_scripture"]
+    print(f"[BIBLE API LOG] Fetching scripture text for {verse_ref}...")
+    verse_text = fetch_bible_verse_text(verse_ref)
+
+    # Resolution Text Descriptions
+    old_desc = "Legacy architecture operated on uncompensated capacity friction, manual failover overhead, and unmitigated systemic decay."
+    modern_desc = calc["nim_llm_analysis"] if calc["nim_llm_analysis"] else (
+        f"UESP PRCE executed automated protocol alignment, NV-Embed context vector mapping, "
+        f"and real-time resonance restoration for target node {node}."
     )
 
     final_output = {
@@ -350,7 +368,7 @@ def execute_scan():
         "node": node,
         "node_signature": calc["node_signature"],
 
-        # Explicit Top-Level Fields (Prevents 'undefined' on dashboard renderers)
+        # Explicit Root Metrics
         "tti": calc["modern_uesp"]["tti"],
         "shi": calc["modern_uesp"]["shi"],
         "delta": calc["modern_uesp"]["delta"],
@@ -363,19 +381,30 @@ def execute_scan():
             "stoichiometric_ratio": calc["stoichiometric_ratio"],
             "node_entropy_index": calc["node_entropy_index"]
         },
+
+        # Root & Nested Historical Analysis (Eliminates UI 'undefined')
+        "historical_parallel": "Systemic Infrastructure & Network Realignment",
+        "era_resolution_old": old_desc,
+        "uesp_resolution_modern": modern_desc,
+        "legacy_vs_modern_analysis": {
+            "old_way_description": old_desc,
+            "uesp_prce_modern_way": modern_desc,
+            "era_resolution_old": old_desc,
+            "uesp_resolution_modern": modern_desc
+        },
+
+        # Root & Nested Prophetic Anchor (Populates Scripture Cards)
+        "prophetic_anchor": f"{verse_ref} — \"{verse_text}\"",
+        "biblical_anchor": {
+            "verse": verse_ref,
+            "text": verse_text,
+            "formatted": f"{verse_ref}: {verse_text}",
+            "context": f"Direct divine baseline comparison for target node {node}."
+        },
+
         "sweep_summary": {
             "bottlenecks_list": calc["mapped_bottlenecks"],
             "protocols_list": calc["mapped_protocols"]
-        },
-        "historical_parallel": "Systemic Infrastructure & Network Realignment",
-        "legacy_vs_modern_analysis": {
-            "old_way_description": "Legacy system suffered manual capacity friction and uncompensated bottleneck overhead.",
-            "uesp_prce_modern_way": modern_analysis_text
-        },
-        "biblical_anchor": {
-            "verse": calc["assigned_scripture"],
-            "text": "Prophetic anchor verse verified.",
-            "context": f"Direct resonance mapping across core node network for {node}."
         }
     }
 
@@ -385,7 +414,7 @@ def execute_scan():
     with open("data/resonance_output.json", "w") as f:
         json.dump(final_output, f, indent=2)
 
-    print(f"[SUCCESS] Scanned '{node}' cleanly via NVIDIA NIM Integration. Output written to data/resonance_output.json")
+    print(f"[SUCCESS] Scanned '{node}' cleanly. Resonance JSON written to data/resonance_output.json")
 
 if __name__ == "__main__":
     execute_scan()
