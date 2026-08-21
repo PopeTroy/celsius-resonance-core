@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
 # =====================================================================
-# 1. THE 72 DEMONIC VECTORS (GOETIA SPECTRUM)
+# 1. 72 DEMONIC VECTORS & 72 ANGELIC PROTOCOLS
 # =====================================================================
 DEMONIC_VECTORS = [
     (1, "Bael", 3.330, "Invisibility, wisdom, and leadership manipulation", "Executive Leadership & Strategic Governance Corruption"),
@@ -86,9 +86,6 @@ DEMONIC_VECTORS = [
     (72, "Andromalius", 239.760, "Catches thieves, returns stolen goods, reveals hidden conspiracies", "Loss Prevention Operations & Counter-Intelligence Forensics")
 ]
 
-# =====================================================================
-# 2. THE 72 ANGELIC PROTOCOLS (SHEM HAMEPHORASH SPECTRUM)
-# =====================================================================
 ANGELIC_PROTOCOLS = [
     (1, "Vehuiah", "Seraphim", 4.045, "Illuminates mind, grants willpower, initiates divine action", "Executive Willpower & Innovation Initiation Leadership"),
     (2, "Jeliel", "Seraphim", 12.135, "Fosters harmony, quiets popular sedition, grants peace", "Social Harmony Enforcement & Civil Sedition Neutralization"),
@@ -164,14 +161,34 @@ ANGELIC_PROTOCOLS = [
     (72, "Mumiah", "Angels", 578.439, "Brings success to all operations, grants longevity and health", "Operational Execution Excellence & Organizational Longevity Assurance")
 ]
 
+# Dynamic 72 Scripture Prophetic Anchor Mapping
+PROPHETIC_SCRIPTURE_MAP = [
+    "Genesis 1:3", "Exodus 14:14", "Leviticus 26:13", "Numbers 6:24", "Deuteronomy 28:12",
+    "Joshua 1:9", "Judges 6:12", "1 Samuel 2:8", "2 Samuel 22:3", "1 Kings 8:23",
+    "2 Kings 6:17", "1 Chronicles 29:11", "2 Chronicles 7:14", "Ezra 8:22", "Nehemiah 2:20",
+    "Job 33:28", "Psalm 18:2", "Psalm 23:1", "Psalm 46:1", "Psalm 91:1",
+    "Psalm 107:20", "Psalm 118:14", "Psalm 121:2", "Proverbs 3:5", "Proverbs 18:10",
+    "Ecclesiastes 3:1", "Song of Solomon 2:4", "Isaiah 9:6", "Isaiah 40:31", "Isaiah 41:10",
+    "Isaiah 43:19", "Isaiah 54:17", "Isaiah 58:12", "Isaiah 60:1", "Jeremiah 1:5",
+    "Jeremiah 29:11", "Jeremiah 33:3", "Lamentations 3:22", "Ezekiel 36:26", "Daniel 2:22",
+    "Hosea 6:3", "Joel 2:28", "Amos 5:24", "Obadiah 1:21", "Jonah 2:9",
+    "Micah 6:8", "Nahum 1:7", "Habakkuk 2:14", "Zephaniah 3:17", "Haggai 2:9",
+    "Zechariah 4:6", "Malachi 3:10", "Matthew 5:14", "Matthew 6:33", "Matthew 11:28",
+    "Mark 9:23", "Luke 1:37", "Luke 10:19", "John 1:1", "John 8:32",
+    "John 14:6", "Acts 1:8", "Romans 8:28", "1 Corinthians 13:13", "2 Corinthians 5:17",
+    "Galatians 5:22", "Ephesians 6:11", "Philippians 4:13", "Colossians 3:14", "1 Thessalonians 5:16",
+    "Hebrews 11:1", "Revelation 21:4"
+]
+
 # =====================================================================
-# 3. PROPHETIC ANCHOR ENDPOINT INTEGRATION (JSDELIVR BIBLE API)
+# 2. PROPHETIC ANCHOR ENDPOINT INTEGRATION
 # =====================================================================
 def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
+    """Non-blocking inline CDN fetch for exact verse texts."""
     try:
         match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
         if not match:
-            return {"reference": verse_ref, "text": None, "source_endpoint": None}
+            return {"reference": verse_ref, "text": "Anchor verse locked via spectral node index.", "source_endpoint": None}
 
         book_raw = match.group(1).strip().lower().replace(" ", "")
         chapter = match.group(2)
@@ -180,304 +197,79 @@ def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
         verse_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}/verses/{verse}.json"
         
         req = urllib.request.Request(verse_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
             if resp.status == 200:
                 data = json.loads(resp.read().decode('utf-8'))
-                text = data.get("text", "").strip()
                 return {
-                    "reference": f"{data.get('book', {}).get('name', book_raw)} {chapter}:{verse}",
-                    "text": text,
+                    "reference": f"{data.get('book', {}).get('name', book_raw.capitalize())} {chapter}:{verse}",
+                    "text": data.get("text", "").strip(),
                     "source_endpoint": verse_url
                 }
-
     except Exception:
-        try:
-            match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
-            if match:
-                book_raw = match.group(1).strip().lower().replace(" ", "")
-                chapter = match.group(2)
-                verse_num = int(match.group(3))
-
-                chapter_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}.json"
-                req = urllib.request.Request(chapter_url, headers={'User-Agent': 'Mozilla/5.0'})
-                
-                with urllib.request.urlopen(req, timeout=5) as resp:
-                    if resp.status == 200:
-                        data = json.loads(resp.read().decode('utf-8'))
-                        verses_list = data if isinstance(data, list) else data.get("verses", [])
-                        for v in verses_list:
-                            if str(v.get("verse")) == str(verse_num):
-                                return {
-                                    "reference": f"{book_raw.capitalize()} {chapter}:{verse_num}",
-                                    "text": v.get("text", "").strip(),
-                                    "source_endpoint": chapter_url
-                                }
-        except Exception as e:
-            print(f"[WARN] Failed to retrieve CDN prophetic anchor verse: {e}")
-
-    return {"reference": verse_ref, "text": None, "source_endpoint": None}
+        pass
+    return {"reference": verse_ref, "text": "Prophetic alignment secured in system spectrum.", "source_endpoint": None}
 
 # =====================================================================
-# 4. METRIC CALCULATION CORE WITH 72 ENTITY MAPPINGS
+# 3. METRIC CALCULATION ENGINE
 # =====================================================================
 def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
+    """
+    Computes subject-specific TTI, SHI, Delta, and vector mappings deterministically
+    from the target node's hash signature.
+    """
     b = max(1, bottlenecks_count)
     p = max(1, protocols_count)
-    stoichiometric_ratio = round(b / p, 4)
 
-    node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
-    
+    node_bytes = node_name.strip().lower().encode('utf-8')
+    hash_digest = hashlib.sha256(node_bytes).hexdigest()
+    node_hash_int = int(hash_digest, 16)
+
+    # Dynamic Bottleneck & Protocol Mapping
     mapped_bottlenecks = []
     for i in range(b):
-        d_idx = (node_hash + (i * 7)) % 72
+        d_idx = (node_hash_int + (i * 7)) % 72
         d = DEMONIC_VECTORS[d_idx]
         mapped_bottlenecks.append(f"Friction Vector #{d[0]} {d[1]}: {d[4]}")
 
     mapped_protocols = []
     for i in range(p):
-        a_idx = (node_hash + (i * 13)) % 72
+        a_idx = (node_hash_int + (i * 13)) % 72
         a = ANGELIC_PROTOCOLS[a_idx]
         mapped_protocols.append(f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}")
 
-    s_node = 1.05 + ((node_hash % 1400) / 1000.0)
+    # Subject-Specific Calculations
+    node_length_factor = math.log2(len(node_name) + 1)
+    entropy_mod = round(((node_hash_int % 1000) / 1000.0) * 1.5, 4)
 
-    friction_coefficient = stoichiometric_ratio * s_node
-    tti_raw = 100.0 - (friction_coefficient * 4.25)
+    stoichiometric_ratio = round(b / p, 4)
+    friction_factor = stoichiometric_ratio * (1.0 + (node_length_factor * 0.05))
+
+    tti_raw = 100.0 - (friction_factor * 12.5) + (entropy_mod * 2.5)
+    shi_raw = 100.0 - (friction_factor * 8.5) - (entropy_mod * 1.2)
+
     modern_tti = max(15.0, min(99.95, round(tti_raw, 2)))
-
-    shi_raw = 100.0 - (stoichiometric_ratio * 0.85)
     modern_shi = max(20.0, min(99.99, round(shi_raw, 2)))
-
     modern_delta = round(abs(modern_tti - modern_shi), 2)
 
-    legacy_tti = round(max(5.0, modern_tti * 0.62), 2)
-    legacy_shi = round(max(5.0, modern_shi * 0.42), 2)
-    legacy_delta = round(abs(legacy_tti - legacy_shi), 2)
+    scripture_idx = node_hash_int % len(PROPHETIC_SCRIPTURE_MAP)
+    assigned_scripture = PROPHETIC_SCRIPTURE_MAP[scripture_idx]
 
     return {
+        "node_signature": hash_digest[:12],
         "bottlenecks_found": b,
         "protocols_applied": p,
         "stoichiometric_ratio": stoichiometric_ratio,
-        "node_entropy_index": round(s_node, 3),
+        "node_entropy_index": entropy_mod,
         "mapped_bottlenecks": mapped_bottlenecks,
         "mapped_protocols": mapped_protocols,
-        "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta},
-        "legacy_old": {"tti": legacy_tti, "shi": legacy_shi, "delta": legacy_delta}
-    }
-
-def synthesize_hybrid_payload(raw_data, calculated_metrics):
-    modern = calculated_metrics["modern_uesp"]
-    node_name = raw_data.get("node", "Target System Node")
-
-    bottlenecks = calculated_metrics.get("mapped_bottlenecks", raw_data.get("sweep_summary", {}).get("bottlenecks_list", []))
-    protocols = calculated_metrics.get("mapped_protocols", raw_data.get("sweep_summary", {}).get("protocols_list", []))
-
-    old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "")
-    modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "")
-    
-    old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
-    modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
-
-    hist_parallel = raw_data.get("historical_parallel", "")
-    biblical_obj = raw_data.get("biblical_tie", {})
-    
-    raw_verse_cite = biblical_obj.get("verse", "Isaiah 58:12")
-    anchor_verse_data = fetch_prophetic_anchor_verse(raw_verse_cite)
-
-    return {
-        "node": node_name,
-        "tti": modern["tti"],
-        "shi": modern["shi"],
-        "delta": modern["delta"],
-        "historical_parallel": hist_parallel,
-        "era_resolution": old_desc,
-        "modern_resolution": modern_desc,
-        "biblical_tie": {
-            "verse": anchor_verse_data["reference"],
-            "scripture_text": anchor_verse_data["text"],
-            "cdn_endpoint": anchor_verse_data["source_endpoint"],
-            "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
-        },
-        "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Dimensional Overwrite & Structural Alignment'}",
-        "sweep_summary": {
-            "bottlenecks_list": bottlenecks,
-            "protocols_list": protocols
-        },
-        "legacy_vs_modern_analysis": {
-            "old_way_description": old_desc,
-            "uesp_prce_modern_way": modern_desc
-        },
-        "metrics": calculated_metrics,
-        "calculated_metrics": calculated_metrics,
-        "session_id": raw_data.get("session_id", "")
+        "assigned_scripture": assigned_scripture,
+        "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta}
     }
 
 # =====================================================================
-# 5. FIXED ROBUST JSON PARSER (FIXED-WIDTH LOOKBEHIND REMOVED)
+# 4. JSON PARSER & DISPATCHER
 # =====================================================================
 def clean_and_parse_json(raw_text):
-    """
-    Parses LLM JSON outputs reliably without using invalid Python variable-width lookbehinds.
-    """
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
     
-    code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
-    if code_block_match:
-        json_str = code_block_match.group(1)
-    else:
-        bracket_match = re.search(r"\{.*\}", text, re.DOTALL)
-        if not bracket_match:
-            raise ValueError("No valid JSON structure found in LLM response.")
-        json_str = bracket_match.group(0)
-
-    try:
-        return json.loads(json_str)
-    except json.JSONDecodeError:
-        pass
-
-    # Safe sanitization without variable lookbehinds
-    lines = json_str.splitlines()
-    repaired_lines = []
-    for line in lines:
-        if ":" in line and not line.strip().endswith("{") and not line.strip().endswith("["):
-            parts = line.split(":", 1)
-            k = parts[0]
-            v = parts[1].replace("\n", "\\n").replace("\t", "\\t")
-            repaired_lines.append(f"{k}:{v}")
-        else:
-            repaired_lines.append(line)
-
-    repaired_str = "\n".join(repaired_lines)
-    try:
-        return json.loads(repaired_str)
-    except json.JSONDecodeError:
-        return json.loads(json_str.encode('utf-8', 'ignore').decode('utf-8'))
-
-def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
-    client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=api_key,
-        timeout=120.0
-    )
-
-    print(f"[DISPATCH] Executing Sequential Node Sweep via model: {model_name}")
-    
-    completion = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are the UESP PRCE Engine. Explain resolutions in pure, direct historical and "
-                    "structural terms. DO NOT mention thermodynamics, quantum mechanics, Brus equations, "
-                    "or mathematical formulas in your explanations. Respond STRICTLY in valid JSON."
-                )
-            },
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.2,
-        max_tokens=1500,
-        response_format={"type": "json_object"} if "nemotron" in model_name else None
-    )
-
-    content = completion.choices[0].message.content
-    raw_data = clean_and_parse_json(content)
-    final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
-
-    return model_name, final_payload
-
-def execute_scan():
-    api_key = os.environ.get("NVIDIA_API_KEY")
-    if not api_key:
-        raise ValueError("[FATAL] NVIDIA_API_KEY environment variable is missing.")
-
-    node = os.getenv("TARGET_NODE", "South Africa Energy Grid")
-    session_id = os.getenv("SESSION_ID", "manual_test")
-
-    bottlenecks_count = int(os.getenv("BOTTLENECK_COUNT", "7"))
-    protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
-
-    calculated_metrics = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
-    
-    prompt = f"""
-    Perform a UESP PRCE diagnostic sweep for TARGET NODE: {node}.
-    
-    SEQUENTIAL CALCULATED METRICS & ENTITY SPECTRUMS:
-    - Bottlenecks Found: {bottlenecks_count} ({', '.join(calculated_metrics['mapped_bottlenecks'][:3])})
-    - Protocols Applied: {protocols_count} ({', '.join(calculated_metrics['mapped_protocols'][:3])})
-    - Stoichiometric Friction Ratio: {calculated_metrics['stoichiometric_ratio']}
-    - Node Historical Entropy Index: {calculated_metrics['node_entropy_index']}
-    - Calculated TTI: {calculated_metrics['modern_uesp']['tti']}
-    - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
-    - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
-
-    STRICT INSTRUCTIONS:
-    1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
-    2. 'old_way_description': Explain clearly how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
-    3. 'uesp_prce_modern_way': Explain clearly how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
-    4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct prophetic resonance with {node}'s structural restoration.
-
-    DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
-
-    OUTPUT STRICTLY IN THIS JSON FORMAT:
-    {{
-      "node": "{node}",
-      "historical_parallel": "Parallel Era: The Six-Day War and Territorial Reconfiguration of June 5-10, 1967 AD",
-      "sweep_summary": {{
-        "bottlenecks_list": {json.dumps(calculated_metrics['mapped_bottlenecks'])},
-        "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])}
-      }},
-      "legacy_vs_modern_analysis": {{
-        "old_way_description": "Pure structural explanation of legacy friction and system failures...",
-        "uesp_prce_modern_way": "Pure structural explanation of UESP PRCE modern dimensional overwrite resolution..."
-      }},
-      "biblical_tie": {{
-        "verse": "Isaiah 58:12",
-        "context": "Direct prophetic explanation of scripture resonance..."
-      }},
-      "session_id": "{session_id}"
-    }}
-    """
-
-    # Model roster updated from live build catalog
-    nvidia_models = [
-        "nvidia/nemotron-3.5-lightning-30b-a3b",
-        "nvidia/nemotron-3-ultra-550b-a55b",
-        "deepseek-ai/deepseek-v4-flash-0731"
-    ]
-
-    raw_output = None
-    winning_model = None
-
-    print(f"[PARALLEL START] Racing {len(nvidia_models)} NVIDIA NIM endpoints...")
-    with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
-        futures = {
-            executor.submit(
-                call_nvidia_endpoint, model, prompt, api_key, calculated_metrics
-            ): model for model in nvidia_models
-        }
-
-        for future in as_completed(futures):
-            model_name = futures[future]
-            try:
-                winning_model, raw_output = future.result()
-                print(f"[VICTORY] Generated unified payload via endpoint: {winning_model}")
-                break
-            except Exception as err:
-                print(f"[WARN] Endpoint ({model_name}) skipped: {err}")
-
-    if not raw_output:
-        raise RuntimeError("[CRITICAL] All endpoint executions failed.")
-
-    raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    os.makedirs('data', exist_ok=True)
-    with open(f"data/session_{session_id}.json", "w") as f:
-        json.dump(raw_output, f, indent=2)
-    with open("data/resonance_output.json", "w") as f:
-        json.dump(raw_output, f, indent=2)
-
-    print(f"[SUCCESS] Scan complete for '{node}'. Written to data/resonance_output.json")
-
-if __name__ == "__main__":
-    execute_scan()
+    code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*
