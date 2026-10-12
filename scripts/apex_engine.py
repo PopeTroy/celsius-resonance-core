@@ -168,11 +168,6 @@ ANGELIC_PROTOCOLS = [
 # 3. PROPHETIC ANCHOR ENDPOINT INTEGRATION (JSDELIVR BIBLE API)
 # =====================================================================
 def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
-    """
-    Fetches exact scripture text from jsDelivr Bible API CDN endpoints.
-    Endpoint 1 (Verse): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}/verses/${verse}.json
-    Endpoint 2 (Chapter): https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/${version}/books/${book}/chapters/${chapter}.json
-    """
     try:
         match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
         if not match:
@@ -194,7 +189,6 @@ def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
                     "text": text,
                     "source_endpoint": verse_url
                 }
-
     except Exception:
         try:
             match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
@@ -321,10 +315,9 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
 # 5. ROBUST JSON PARSER FIX FOR LLM ARTIFACTS
 # =====================================================================
 def clean_and_parse_json(raw_text):
-    """
-    Robust JSON parser designed to handle LLM artifacts, unescaped quotes,
-    newlines within string values, and missing code block syntax.
-    """
+    if not raw_text:
+        raise ValueError("Empty response text from LLM.")
+    
     text = re.sub(r"<think>.*?</think>", "", raw_text.strip(), flags=re.DOTALL)
     
     code_block_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
@@ -339,23 +332,9 @@ def clean_and_parse_json(raw_text):
     try:
         return json.loads(json_str)
     except json.JSONDecodeError:
-        pass
-
-    repaired = re.sub(
-        r'(?<=:\s*")([\s\S]*?)(?="\s*(?:,\s*"|\}))',
-        lambda m: m.group(1).replace('\n', '\\n').replace('\r', '').replace('\t', '\\t').replace('"', '\\"'),
-        json_str
-    )
-
-    try:
-        return json.loads(repaired)
-    except json.JSONDecodeError:
-        cleaned_lines = []
-        for line in json_str.splitlines():
-            cleaned_lines.append(line)
-        
-        repaired_fallback = "\n".join(cleaned_lines)
-        return json.loads(repaired_fallback)
+        # Fallback repair cleaning trailing commas or malformed lines
+        cleaned = re.sub(r',\s*([\]}])', r'\1', json_str)
+        return json.loads(cleaned)
 
 def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
     client = OpenAI(
@@ -364,7 +343,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
         timeout=120.0
     )
 
-    print(f"[DISPATCH] Executing Sequential Node Sweep via model: {model_name}")
+    print(f"[DISPATCH] Executing Ephemeral RAG Shinobi Instance via model: {model_name}")
     
     completion = client.chat.completions.create(
         model=model_name,
@@ -383,7 +362,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
         max_tokens=1500
     )
 
-    content = completion.choices[0].message.content
+    content = completion.choices[0].message.content or ""
     raw_data = clean_and_parse_json(content)
     final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
 
@@ -442,16 +421,17 @@ def execute_scan():
     }}
     """
 
+    # Active NVIDIA NIM models (combining Nemotron tiers and DeepSeek architecture)
     nvidia_models = [
-        "nvidia/nemotron-3-ultra-550b-a55b",
-        "nvidia/nemotron-3.5-lightning-30b-a3b",
-        "z-ai/glm-5.2"
+        "deepseek-ai/deepseek-v4",
+        "nvidia/nemotron-4-340b-instruct",
+        "nvidia/nemotron-3-ultra-550b-a55b"
     ]
 
     raw_output = None
     winning_model = None
 
-    print(f"[PARALLEL START] Racing {len(nvidia_models)} NVIDIA NIM endpoints...")
+    print(f"[PARALLEL START] Racing {len(nvidia_models)} Ephemeral RAG Shinobi / Tailed-Beast Instances...")
     with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
         futures = {
             executor.submit(
@@ -463,10 +443,10 @@ def execute_scan():
             model_name = futures[future]
             try:
                 winning_model, raw_output = future.result()
-                print(f"[VICTORY] Generated unified payload via endpoint: {winning_model}")
+                print(f"[VICTORY] Generated unified payload via divine ocular instance: {winning_model}")
                 break
             except Exception as err:
-                print(f"[WARN] Endpoint ({model_name}) skipped: {err}")
+                print(f"[WARN] Instance ({model_name}) skipped: {err}")
 
     if not raw_output:
         raise RuntimeError("[CRITICAL] All endpoint executions failed.")
