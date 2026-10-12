@@ -19,7 +19,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install Dependencies
-        run: pip install openai
+        run: pip install openai numpy
 
       - name: Execute Superman Engine
         env:
