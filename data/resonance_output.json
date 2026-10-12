@@ -1,8 +1,8 @@
 {
-  "node": "Israel ",
-  "tti": 94.21,
+  "node": "South Africa ",
+  "tti": 95.4,
   "shi": 99.5,
-  "delta": 5.29,
+  "delta": 4.1,
   "historical_parallel": "Parallel Era: Foundational Restoration and Alignment",
   "era_resolution": "Legacy operations constrained by unmanaged systemic friction.",
   "modern_resolution": "Complete structural override and alignment protocol deployed.",
@@ -12,30 +12,30 @@
     "cdn_endpoint": "https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/en-kjv/books/isaiah/chapters/58/verses/12.json",
     "context": "Sequential alignment of system components under unified law."
   },
-  "protocol": "Execute UESP active protocols: Angelic Protocol #32 Vasariah (Dominions): Litigation Defense Strategy & High-Impact Public Speaking, Angelic Protocol #45 Sealiah (Virtues): Meritocratic Talent Elevation & Fair Labor Compensation, Angelic Protocol #58 Yeialel (Archangels): Ophthalmology Bio-Tech & Deception Detection Systems",
+  "protocol": "Execute UESP active protocols: Angelic Protocol #53 Nanael (Principalities): University Curriculum Reform & Higher Judicial Education, Angelic Protocol #66 Manakel (Angels): Neuro-Somatic Therapeutics & Precision Agriculture Automation, Angelic Protocol #7 Achaiah (Seraphim): Environmental Science Discovery & Process Engineering Patience",
   "sweep_summary": {
     "bottlenecks_list": [
-      "Friction Vector #32 Asmodai: Advanced Cryptography & Quantitative Financial Mathematics",
-      "Friction Vector #39 Malphas: High-Rise Architectural Engineering & Industrial Espionage Defense",
-      "Friction Vector #46 Bifrons: Surveying Geometry & Hazardous Waste Management",
       "Friction Vector #53 Camio: Bio-Acoustic Signal Processing & News Synthesis",
       "Friction Vector #60 Vapula: Precision Machining & Advanced Vocational Technical Education",
       "Friction Vector #67 Amdusias: Forestry Engineering & Computational Acoustic Design",
-      "Friction Vector #2 Agares: Civil Infrastructure & Physical Foundations Engineering"
+      "Friction Vector #2 Agares: Civil Infrastructure & Physical Foundations Engineering",
+      "Friction Vector #9 Paimon: Enterprise Architecture & Mass Operational Alignment",
+      "Friction Vector #16 Zepar: Materials Science & Structural Integrity Testing",
+      "Friction Vector #23 Aim: Thermal Energy Systems & Urban Fire Prevention"
     ],
     "protocols_list": [
-      "Angelic Protocol #32 Vasariah (Dominions): Litigation Defense Strategy & High-Impact Public Speaking",
-      "Angelic Protocol #45 Sealiah (Virtues): Meritocratic Talent Elevation & Fair Labor Compensation",
-      "Angelic Protocol #58 Yeialel (Archangels): Ophthalmology Bio-Tech & Deception Detection Systems",
-      "Angelic Protocol #71 Haiaiel (Angels): Defense Arsenal Shielding & Strategic Adversary Neutralization",
-      "Angelic Protocol #12 Hahaiah (Cherubim): Sub-Surface Geology Imaging & Strategic Peace Engineering",
-      "Angelic Protocol #25 Nith-Haiah (Dominions): Deep Quantum Computing Logic & Proprietary Knowledge Protection",
-      "Angelic Protocol #38 Haamiah (Powers): Data Science Integrity & Standards Protocol Alignment",
-      "Angelic Protocol #51 Hahasiah (Principalities): Quantum Chemistry Synthesis & Advanced Pharmacology Discovery",
-      "Angelic Protocol #64 Mehiel (Archangels): Bio-Hazard Defense & Computational Mass Media Distribution",
-      "Angelic Protocol #5 Mahasiah (Seraphim): Advanced R&D Leadership & Moral Technology Ethics",
-      "Angelic Protocol #18 Caliel (Thrones): Automated Legal Docket Processing & Perjury Detection AI",
-      "Angelic Protocol #31 Lecabel (Dominions): Precision Hydroponic Engineering & Solar Radiation Optimization"
+      "Angelic Protocol #53 Nanael (Principalities): University Curriculum Reform & Higher Judicial Education",
+      "Angelic Protocol #66 Manakel (Angels): Neuro-Somatic Therapeutics & Precision Agriculture Automation",
+      "Angelic Protocol #7 Achaiah (Seraphim): Environmental Science Discovery & Process Engineering Patience",
+      "Angelic Protocol #20 Pahaliah (Thrones): Ethical Corporate Alignment & Strategic Competitor Conversion",
+      "Angelic Protocol #33 Yehuiah (Powers): Institutional Governance & Conspiracy Vector Uncovering",
+      "Angelic Protocol #46 Ariel (Virtues): Predictive Environmental Modeling & Resource Location Discovery",
+      "Angelic Protocol #59 Harahel (Archangels): High-Volume Archival Repositories & Wealth Education Systems",
+      "Angelic Protocol #72 Mumiah (Angels): Operational Execution Excellence & Organizational Longevity Assurance",
+      "Angelic Protocol #13 Iezalel (Cherubim): Educational Curriculum Design & Systemic Operational Order",
+      "Angelic Protocol #26 Haaiah (Dominions): International Treaty Drafting & State Cipher Security",
+      "Angelic Protocol #39 Rehael (Powers): Occupational Health Longevity & Physical Therapy Systems",
+      "Angelic Protocol #52 Imamiah (Principalities): Transportation Security Infrastructure & Hostage Negotiation"
     ]
   },
   "legacy_vs_modern_analysis": {
@@ -46,80 +46,80 @@
     "bottlenecks_found": 7,
     "protocols_applied": 12,
     "stoichiometric_ratio": 0.5833,
-    "node_entropy_index": 2.337,
+    "node_entropy_index": 1.854,
     "mapped_bottlenecks": [
-      "Friction Vector #32 Asmodai: Advanced Cryptography & Quantitative Financial Mathematics",
-      "Friction Vector #39 Malphas: High-Rise Architectural Engineering & Industrial Espionage Defense",
-      "Friction Vector #46 Bifrons: Surveying Geometry & Hazardous Waste Management",
       "Friction Vector #53 Camio: Bio-Acoustic Signal Processing & News Synthesis",
       "Friction Vector #60 Vapula: Precision Machining & Advanced Vocational Technical Education",
       "Friction Vector #67 Amdusias: Forestry Engineering & Computational Acoustic Design",
-      "Friction Vector #2 Agares: Civil Infrastructure & Physical Foundations Engineering"
+      "Friction Vector #2 Agares: Civil Infrastructure & Physical Foundations Engineering",
+      "Friction Vector #9 Paimon: Enterprise Architecture & Mass Operational Alignment",
+      "Friction Vector #16 Zepar: Materials Science & Structural Integrity Testing",
+      "Friction Vector #23 Aim: Thermal Energy Systems & Urban Fire Prevention"
     ],
     "mapped_protocols": [
-      "Angelic Protocol #32 Vasariah (Dominions): Litigation Defense Strategy & High-Impact Public Speaking",
-      "Angelic Protocol #45 Sealiah (Virtues): Meritocratic Talent Elevation & Fair Labor Compensation",
-      "Angelic Protocol #58 Yeialel (Archangels): Ophthalmology Bio-Tech & Deception Detection Systems",
-      "Angelic Protocol #71 Haiaiel (Angels): Defense Arsenal Shielding & Strategic Adversary Neutralization",
-      "Angelic Protocol #12 Hahaiah (Cherubim): Sub-Surface Geology Imaging & Strategic Peace Engineering",
-      "Angelic Protocol #25 Nith-Haiah (Dominions): Deep Quantum Computing Logic & Proprietary Knowledge Protection",
-      "Angelic Protocol #38 Haamiah (Powers): Data Science Integrity & Standards Protocol Alignment",
-      "Angelic Protocol #51 Hahasiah (Principalities): Quantum Chemistry Synthesis & Advanced Pharmacology Discovery",
-      "Angelic Protocol #64 Mehiel (Archangels): Bio-Hazard Defense & Computational Mass Media Distribution",
-      "Angelic Protocol #5 Mahasiah (Seraphim): Advanced R&D Leadership & Moral Technology Ethics",
-      "Angelic Protocol #18 Caliel (Thrones): Automated Legal Docket Processing & Perjury Detection AI",
-      "Angelic Protocol #31 Lecabel (Dominions): Precision Hydroponic Engineering & Solar Radiation Optimization"
+      "Angelic Protocol #53 Nanael (Principalities): University Curriculum Reform & Higher Judicial Education",
+      "Angelic Protocol #66 Manakel (Angels): Neuro-Somatic Therapeutics & Precision Agriculture Automation",
+      "Angelic Protocol #7 Achaiah (Seraphim): Environmental Science Discovery & Process Engineering Patience",
+      "Angelic Protocol #20 Pahaliah (Thrones): Ethical Corporate Alignment & Strategic Competitor Conversion",
+      "Angelic Protocol #33 Yehuiah (Powers): Institutional Governance & Conspiracy Vector Uncovering",
+      "Angelic Protocol #46 Ariel (Virtues): Predictive Environmental Modeling & Resource Location Discovery",
+      "Angelic Protocol #59 Harahel (Archangels): High-Volume Archival Repositories & Wealth Education Systems",
+      "Angelic Protocol #72 Mumiah (Angels): Operational Execution Excellence & Organizational Longevity Assurance",
+      "Angelic Protocol #13 Iezalel (Cherubim): Educational Curriculum Design & Systemic Operational Order",
+      "Angelic Protocol #26 Haaiah (Dominions): International Treaty Drafting & State Cipher Security",
+      "Angelic Protocol #39 Rehael (Powers): Occupational Health Longevity & Physical Therapy Systems",
+      "Angelic Protocol #52 Imamiah (Principalities): Transportation Security Infrastructure & Hostage Negotiation"
     ],
     "modern_uesp": {
-      "tti": 94.21,
+      "tti": 95.4,
       "shi": 99.5,
-      "delta": 5.29
+      "delta": 4.1
     },
     "legacy_old": {
-      "tti": 58.41,
+      "tti": 59.15,
       "shi": 41.79,
-      "delta": 16.62
+      "delta": 17.36
     }
   },
   "calculated_metrics": {
     "bottlenecks_found": 7,
     "protocols_applied": 12,
     "stoichiometric_ratio": 0.5833,
-    "node_entropy_index": 2.337,
+    "node_entropy_index": 1.854,
     "mapped_bottlenecks": [
-      "Friction Vector #32 Asmodai: Advanced Cryptography & Quantitative Financial Mathematics",
-      "Friction Vector #39 Malphas: High-Rise Architectural Engineering & Industrial Espionage Defense",
-      "Friction Vector #46 Bifrons: Surveying Geometry & Hazardous Waste Management",
       "Friction Vector #53 Camio: Bio-Acoustic Signal Processing & News Synthesis",
       "Friction Vector #60 Vapula: Precision Machining & Advanced Vocational Technical Education",
       "Friction Vector #67 Amdusias: Forestry Engineering & Computational Acoustic Design",
-      "Friction Vector #2 Agares: Civil Infrastructure & Physical Foundations Engineering"
+      "Friction Vector #2 Agares: Civil Infrastructure & Physical Foundations Engineering",
+      "Friction Vector #9 Paimon: Enterprise Architecture & Mass Operational Alignment",
+      "Friction Vector #16 Zepar: Materials Science & Structural Integrity Testing",
+      "Friction Vector #23 Aim: Thermal Energy Systems & Urban Fire Prevention"
     ],
     "mapped_protocols": [
-      "Angelic Protocol #32 Vasariah (Dominions): Litigation Defense Strategy & High-Impact Public Speaking",
-      "Angelic Protocol #45 Sealiah (Virtues): Meritocratic Talent Elevation & Fair Labor Compensation",
-      "Angelic Protocol #58 Yeialel (Archangels): Ophthalmology Bio-Tech & Deception Detection Systems",
-      "Angelic Protocol #71 Haiaiel (Angels): Defense Arsenal Shielding & Strategic Adversary Neutralization",
-      "Angelic Protocol #12 Hahaiah (Cherubim): Sub-Surface Geology Imaging & Strategic Peace Engineering",
-      "Angelic Protocol #25 Nith-Haiah (Dominions): Deep Quantum Computing Logic & Proprietary Knowledge Protection",
-      "Angelic Protocol #38 Haamiah (Powers): Data Science Integrity & Standards Protocol Alignment",
-      "Angelic Protocol #51 Hahasiah (Principalities): Quantum Chemistry Synthesis & Advanced Pharmacology Discovery",
-      "Angelic Protocol #64 Mehiel (Archangels): Bio-Hazard Defense & Computational Mass Media Distribution",
-      "Angelic Protocol #5 Mahasiah (Seraphim): Advanced R&D Leadership & Moral Technology Ethics",
-      "Angelic Protocol #18 Caliel (Thrones): Automated Legal Docket Processing & Perjury Detection AI",
-      "Angelic Protocol #31 Lecabel (Dominions): Precision Hydroponic Engineering & Solar Radiation Optimization"
+      "Angelic Protocol #53 Nanael (Principalities): University Curriculum Reform & Higher Judicial Education",
+      "Angelic Protocol #66 Manakel (Angels): Neuro-Somatic Therapeutics & Precision Agriculture Automation",
+      "Angelic Protocol #7 Achaiah (Seraphim): Environmental Science Discovery & Process Engineering Patience",
+      "Angelic Protocol #20 Pahaliah (Thrones): Ethical Corporate Alignment & Strategic Competitor Conversion",
+      "Angelic Protocol #33 Yehuiah (Powers): Institutional Governance & Conspiracy Vector Uncovering",
+      "Angelic Protocol #46 Ariel (Virtues): Predictive Environmental Modeling & Resource Location Discovery",
+      "Angelic Protocol #59 Harahel (Archangels): High-Volume Archival Repositories & Wealth Education Systems",
+      "Angelic Protocol #72 Mumiah (Angels): Operational Execution Excellence & Organizational Longevity Assurance",
+      "Angelic Protocol #13 Iezalel (Cherubim): Educational Curriculum Design & Systemic Operational Order",
+      "Angelic Protocol #26 Haaiah (Dominions): International Treaty Drafting & State Cipher Security",
+      "Angelic Protocol #39 Rehael (Powers): Occupational Health Longevity & Physical Therapy Systems",
+      "Angelic Protocol #52 Imamiah (Principalities): Transportation Security Infrastructure & Hostage Negotiation"
     ],
     "modern_uesp": {
-      "tti": 94.21,
+      "tti": 95.4,
       "shi": 99.5,
-      "delta": 5.29
+      "delta": 4.1
     },
     "legacy_old": {
-      "tti": 58.41,
+      "tti": 59.15,
       "shi": 41.79,
-      "delta": 16.62
+      "delta": 17.36
     }
   },
-  "session_id": "UESP_1791807843084",
-  "timestamp": "2026-10-12 12:24:28"
+  "session_id": "UESP_1791808081159",
+  "timestamp": "2026-10-12 12:28:26"
 }
