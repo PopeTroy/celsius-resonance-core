@@ -179,6 +179,82 @@ SCRIPTURE_ANCHOR_REPOSITORY = [
     ("Job 12:13", "With God are wisdom and might; he has counsel and understanding.")
 ]
 
+# =====================================================================
+# 3. UNIFIED GRAND PROPHETIC EQUATION & LAW OF DIMENSIONAL OVERWRITE
+# =====================================================================
+def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
+    b = max(1, bottlenecks_count)
+    p = max(1, protocols_count)
+    stoichiometric_ratio = round(b / p, 4)
+
+    node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
+    
+    mapped_bottlenecks = []
+    total_demonic_freq = 0.0
+    for i in range(b):
+        d_idx = (node_hash + (i * 7)) % 72
+        d = DEMONIC_VECTORS[d_idx]
+        total_demonic_freq += d[2]
+        mapped_bottlenecks.append({
+            "vector_id": d[0],
+            "name": d[1],
+            "frequency": d[2],
+            "power": d[3],
+            "domain": d[4],
+            "historical_era": d[5],
+            "string": f"Friction Vector #{d[0]} {d[1]} ({d[3]}): {d[4]}"
+        })
+
+    mapped_protocols = []
+    total_angelic_freq = 0.0
+    for i in range(p):
+        a_idx = (node_hash + (i * 13)) % 72
+        a = ANGELIC_PROTOCOLS[a_idx]
+        total_angelic_freq += a[3]
+        mapped_protocols.append({
+            "protocol_id": a[0],
+            "name": a[1],
+            "chorus": a[2],
+            "frequency": a[3],
+            "power": a[4],
+            "domain": a[5],
+            "string": f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}"
+        })
+
+    # Node Entropy Index (S_node)
+    s_node = 1.05 + ((node_hash % 1400) / 1000.0)
+
+    # 1. UNIFIED GRAND PROPHETIC EQUATION (TTI Calculation)
+    # TTI = 100 - (Stoichiometric_Ratio * S_node * avg_demonic_freq_scale)
+    avg_demonic_factor = (total_demonic_freq / b) / 100.0
+    tti_decay = (stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * 3.14159
+    calculated_tti = round(max(15.00, min(99.95, 100.0 - tti_decay)), 2)
+
+    # 2. LAW OF DIMENSIONAL OVERWRITE EQUATION (SHI Calculation)
+    # SHI = 100 - (|144000_bridge_constant - Angelic_Resonance_Baseline|)
+    avg_angelic_factor = (total_angelic_freq / p) / 600.0
+    shi_overwrite_gain = (1.0 - (stoichiometric_ratio * 0.12)) * (0.95 + avg_angelic_factor)
+    calculated_shi = round(max(20.00, min(99.99, 90.0 + (shi_overwrite_gain * 9.99))), 2)
+
+    # 3. DIFFERENTIAL DELTA
+    calculated_delta = round(abs(calculated_tti - calculated_shi), 2)
+
+    return {
+        "bottlenecks_found": b,
+        "protocols_applied": p,
+        "stoichiometric_ratio": stoichiometric_ratio,
+        "node_entropy_index": round(s_node, 3),
+        "mapped_bottlenecks": [mb["string"] for mb in mapped_bottlenecks],
+        "mapped_bottlenecks_obj": mapped_bottlenecks,
+        "mapped_protocols": [mp["string"] for mp in mapped_protocols],
+        "mapped_protocols_obj": mapped_protocols,
+        "modern_uesp": {
+            "tti": calculated_tti,
+            "shi": calculated_shi,
+            "delta": calculated_delta
+        }
+    }
+
 def select_dynamic_prophetic_anchor(node_name, tti, shi, delta):
     seed = f"{node_name}_{tti}_{shi}_{delta}"
     hash_val = int(hashlib.sha256(seed.encode('utf-8')).hexdigest(), 16)
@@ -190,62 +266,6 @@ def select_dynamic_prophetic_anchor(node_name, tti, shi, delta):
         "text": txt,
         "source_endpoint": "dynamic_scripture_matrix",
         "context": f"Calculated differential anchor ({delta}) for node {node_name} under technical integrity ({tti}) and systemic health ({shi})."
-    }
-
-def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_count):
-    b = max(1, bottlenecks_count)
-    p = max(1, protocols_count)
-    stoichiometric_ratio = round(b / p, 4)
-
-    node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
-    
-    mapped_bottlenecks = []
-    for i in range(b):
-        d_idx = (node_hash + (i * 7)) % 72
-        d = DEMONIC_VECTORS[d_idx]
-        mapped_bottlenecks.append({
-            "vector_id": d[0],
-            "name": d[1],
-            "power": d[3],
-            "domain": d[4],
-            "historical_era": d[5],
-            "string": f"Friction Vector #{d[0]} {d[1]} ({d[3]}): {d[4]}"
-        })
-
-    mapped_protocols = []
-    for i in range(p):
-        a_idx = (node_hash + (i * 13)) % 72
-        a = ANGELIC_PROTOCOLS[a_idx]
-        mapped_protocols.append({
-            "protocol_id": a[0],
-            "name": a[1],
-            "chorus": a[2],
-            "power": a[4],
-            "domain": a[5],
-            "string": f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}"
-        })
-
-    s_node = 1.05 + ((node_hash % 1400) / 1000.0)
-
-    friction_coefficient = stoichiometric_ratio * s_node
-    tti_raw = 100.0 - (friction_coefficient * 4.25)
-    modern_tti = max(15.0, min(99.95, round(tti_raw, 2)))
-
-    shi_raw = 100.0 - (stoichiometric_ratio * 0.85)
-    modern_shi = max(20.0, min(99.99, round(shi_raw, 2)))
-
-    modern_delta = round(abs(modern_tti - modern_shi), 2)
-
-    return {
-        "bottlenecks_found": b,
-        "protocols_applied": p,
-        "stoichiometric_ratio": stoichiometric_ratio,
-        "node_entropy_index": round(s_node, 3),
-        "mapped_bottlenecks": [mb["string"] for mb in mapped_bottlenecks],
-        "mapped_bottlenecks_obj": mapped_bottlenecks,
-        "mapped_protocols": [mp["string"] for mp in mapped_protocols],
-        "mapped_protocols_obj": mapped_protocols,
-        "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta}
     }
 
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
@@ -405,8 +425,8 @@ def execute_scan():
     - Historical Parallel Era: {primary_vector['historical_era']}
     - Primary Angelic Protocol: {primary_protocol['string']}
     - Stoichiometric Friction Ratio: {calculated_metrics['stoichiometric_ratio']}
-    - Calculated TTI: {calculated_metrics['modern_uesp']['tti']}
-    - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
+    - Calculated TTI (Unified Grand Prophetic Equation): {calculated_metrics['modern_uesp']['tti']}
+    - Calculated SHI (Law of Dimensional Overwrite): {calculated_metrics['modern_uesp']['shi']}
     - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
 
     STRICT INSTRUCTIONS:
