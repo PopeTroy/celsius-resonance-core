@@ -271,17 +271,35 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     bottlenecks = calculated_metrics.get("mapped_bottlenecks", raw_data.get("sweep_summary", {}).get("bottlenecks_list", []))
     protocols = calculated_metrics.get("mapped_protocols", raw_data.get("sweep_summary", {}).get("protocols_list", []))
 
-    old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "Legacy systems operated under accumulated structural friction and uncompensated institutional bottlenecks.")
-    modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "The UESP PRCE framework executes a complete structural realignment to eliminate friction and restore systemic integrity.")
+    old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "Legacy systems operated under accumulated structural friction, uncompensated bottleneck buildup, and widespread institutional decay.")
+    modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "The UESP PRCE framework executes a complete structural and dimensional realignment to eliminate friction, optimize throughput, and restore systemic integrity.")
     
     old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
     modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
 
-    hist_parallel = raw_data.get("historical_parallel", "Parallel Era: Structural Reconfiguration and Institutional Restoration")
+    hist_parallel = raw_data.get("historical_parallel", "Parallel Era: Foundational Restoration and Structural Alignment")
     biblical_obj = raw_data.get("biblical_tie", {})
     
     raw_verse_cite = biblical_obj.get("verse", "Isaiah 58:12")
     anchor_verse_data = fetch_prophetic_anchor_verse(raw_verse_cite)
+
+    # Elaborate multi-paragraph protocol text ensuring 1200+ words depth across sections
+    raw_protocol = raw_data.get("protocol", "")
+    if len(raw_protocol.split()) < 150:
+        raw_protocol = (
+            f"Execution Protocol Overview: The system node '{node_name}' requires an immediate, comprehensive "
+            "structural overhaul across its operational lifecycle. By deploying active UESP protocols, we systematically "
+            "isolate and neutralize institutional friction vectors and systemic bottlenecks. This intervention bridges historical "
+            "precedents with advanced predictive analytics, ensuring long-term institutional stability and resilience.\n\n"
+            "Operational Mechanics & Alignment: Every operational layer within the enterprise architecture is cross-referenced "
+            "against absolute mathematical alignments. Rather than relying on trial-and-error reactive measures, the framework "
+            "executes a precise dimensional overwrite. Active angelic protocols restore harmony, streamline resource allocation, "
+            "and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
+            "Future-Proofing & Execution Mandate: Sustained high technical integrity (TTI) and systemic health (SHI) require "
+            "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to the calculated stoichiometric "
+            "ratios and prophetic anchors, the organization secures absolute operational sovereignty, ensuring unhindered scalability "
+            "and enduring systemic triumph."
+        )
 
     return {
         "node": node_name,
@@ -297,7 +315,8 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
             "cdn_endpoint": anchor_verse_data["source_endpoint"],
             "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
         },
-        "protocol": f"Execute UESP active protocols: {', '.join(protocols[:3]) if protocols else 'Dimensional Overwrite & Structural Alignment'}",
+        "protocol": raw_protocol,
+        "uesp_final_protocol": raw_protocol,
         "sweep_summary": {
             "bottlenecks_list": bottlenecks,
             "protocols_list": protocols
@@ -350,37 +369,37 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Engine. Explain resolutions in pure, direct historical and "
-                    "structural terms. DO NOT mention thermodynamics, quantum mechanics, Brus equations, "
-                    "or mathematical formulas in your explanations. Output strictly valid JSON."
+                    "You are the UESP PRCE Engine. Provide deep, elaborate, multi-paragraph structural analyses "
+                    "totaling over 1200 words across the response fields. Explain resolutions in pure, direct historical and "
+                    "structural terms. DO NOT mention thermodynamics, quantum mechanics, or mathematical formulas. Output strictly valid JSON."
                 )
             },
             {"role": "user", "content": prompt}
         ],
-        temperature=0.2,
-        max_tokens=1500
+        temperature=0.3,
+        max_tokens=3000
     )
 
     content = completion.choices[0].message.content or ""
     try:
         raw_data = clean_and_parse_json(content)
     except Exception:
-        # Failsafe fallback object so the execution never halts on bad LLM JSON
         raw_data = {
             "node": "System Node",
-            "historical_parallel": "Parallel Era: Structural Restoration and Strategic Calibration",
+            "historical_parallel": "Parallel Era: Foundational Restoration and Structural Alignment",
             "sweep_summary": {
                 "bottlenecks_list": calculated_metrics['mapped_bottlenecks'],
                 "protocols_list": calculated_metrics['mapped_protocols']
             },
             "legacy_vs_modern_analysis": {
-                "old_way_description": content[:300] if content else "Legacy institutional friction.",
-                "uesp_prce_modern_way": "Complete architectural alignment and structural overwrite."
+                "old_way_description": "Legacy operations constrained by unmanaged systemic friction, leading to severe institutional decay and throughput bottlenecks.",
+                "uesp_prce_modern_way": "Comprehensive structural overwrite executing multi-layered alignment protocols to ensure absolute technical integrity."
             },
             "biblical_tie": {
                 "verse": "Isaiah 58:12",
-                "context": "Restoring foundations and repairing system breaches."
-            }
+                "context": "Restoring foundational waste places and establishing permanent system integrity."
+            },
+            "protocol": content if len(content) > 100 else "Comprehensive multi-paragraph execution protocol for system integrity and dimensional realignment."
         }
 
     final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
@@ -400,7 +419,7 @@ def execute_scan():
     calculated_metrics = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
     
     prompt = f"""
-    Perform a UESP PRCE diagnostic sweep for TARGET NODE: {node}.
+    Perform an exhaustive UESP PRCE diagnostic sweep for TARGET NODE: {node}.
     
     SEQUENTIAL CALCULATED METRICS & ENTITY SPECTRUMS:
     - Bottlenecks Found: {bottlenecks_count} ({', '.join(calculated_metrics['mapped_bottlenecks'][:3])})
@@ -413,9 +432,10 @@ def execute_scan():
 
     STRICT INSTRUCTIONS:
     1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
-    2. 'old_way_description': Explain clearly how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
-    3. 'uesp_prce_modern_way': Explain clearly how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
+    2. 'old_way_description': Elaborate in detailed paragraphs how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
+    3. 'uesp_prce_modern_way': Elaborate in detailed paragraphs how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
     4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct prophetic resonance with {node}'s structural restoration.
+    5. 'protocol': Provide an extensive, deep, multi-paragraph executive protocol (at least 4-5 rich paragraphs) outlining operational mechanics, systemic forensics, and execution mandates.
 
     DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
 
@@ -428,18 +448,18 @@ def execute_scan():
         "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])}
       }},
       "legacy_vs_modern_analysis": {{
-        "old_way_description": "Pure structural explanation of legacy friction and system failures...",
-        "uesp_prce_modern_way": "Pure structural explanation of UESP PRCE modern dimensional overwrite resolution..."
+        "old_way_description": "Detailed multi-paragraph description of legacy friction and system failures...",
+        "uesp_prce_modern_way": "Detailed multi-paragraph description of UESP PRCE modern dimensional overwrite resolution..."
       }},
       "biblical_tie": {{
         "verse": "Isaiah 58:12",
         "context": "Direct prophetic explanation of scripture resonance..."
       }},
+      "protocol": "Extensive multi-paragraph executive protocol detailing operational alignment, structural forensics, and execution steps...",
       "session_id": "{session_id}"
     }}
     """
 
-    # Verified active production models on NVIDIA NIM cloud endpoint
     nvidia_models = [
         "meta/llama-3.3-70b-instruct",
         "meta/llama-3.1-70b-instruct",
@@ -468,16 +488,28 @@ def execute_scan():
                 print(f"[WARN] Instance ({model_name}) encountered issue: {err}")
 
     if not raw_output:
-        # Ultimate fallback payload generation if all parallel threads fail
         winning_model = "fallback-core"
         raw_output = synthesize_hybrid_payload({
             "node": node,
             "session_id": session_id,
             "historical_parallel": "Parallel Era: Foundational Restoration and Alignment",
             "legacy_vs_modern_analysis": {
-                "old_way_description": "Legacy operations constrained by unmanaged systemic friction.",
-                "uesp_prce_modern_way": "Complete structural override and alignment protocol deployed."
-            }
+                "old_way_description": "Legacy operations constrained by unmanaged systemic friction and structural decay.",
+                "uesp_prce_modern_way": "Complete structural override and alignment protocol deployed for maximum operational integrity."
+            },
+            "protocol": (
+                "Execution Protocol Overview: The system node requires an immediate, comprehensive "
+                "structural overhaul across its operational lifecycle. By deploying active UESP protocols, we systematically "
+                "isolate and neutralize institutional friction vectors and systemic bottlenecks. This intervention bridges historical "
+                "precedents with advanced predictive analytics, ensuring long-term institutional stability and resilience.\n\n"
+                "Operational Mechanics & Alignment: Every operational layer within the enterprise architecture is cross-referenced "
+                "against absolute mathematical alignments. Rather than relying on trial-and-error reactive measures, the framework "
+                "executes a precise dimensional overwrite. Active protocols restore harmony, streamline resource allocation, "
+                "and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
+                "Future-Proofing & Execution Mandate: Sustained high technical integrity and systemic health require "
+                "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to calculated stoichiometric "
+                "ratios and prophetic anchors, the organization secures absolute operational sovereignty and enduring systemic triumph."
+            )
         }, calculated_metrics)
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
