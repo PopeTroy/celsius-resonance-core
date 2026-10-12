@@ -164,57 +164,37 @@ ANGELIC_PROTOCOLS = [
     (72, "Mumiah", "Angels", 578.439, "Brings success to all operations, grants longevity and health", "Operational Execution Excellence & Organizational Longevity Assurance")
 ]
 
+# Comprehensive scripture matrix mapped across Old & New Testament
+SCRIPTURE_ANCHOR_REPOSITORY = [
+    ("Proverbs 11:3", "The integrity of the upright guides them, but the crookedness of the treacherous destroys them."),
+    ("Proverbs 24:3-4", "Through wisdom a house is built, and by understanding it is established; by knowledge the rooms are filled with all precious and pleasant riches."),
+    ("Isaiah 2:4", "They shall beat their swords into plowshares, and their spears into pruning hooks; nation shall not lift up sword against nation, neither shall they learn war anymore."),
+    ("Isaiah 58:12", "And they that shall be of thee shall build the old waste places: thou shalt raise up the foundations of many generations; and thou shalt be called, The repairer of the breach, The restorer of paths to dwell in."),
+    ("Jeremiah 29:11", "For I know the plans I have for you, declares the Lord, plans for welfare and not for evil, to give you a future and a hope."),
+    ("Psalm 90:17", "Let the favor of the Lord our God be upon us, and establish the work of our hands upon us; yes, establish the work of our hands!"),
+    ("Colossians 3:23", "Whatever you do, work heartily, as for the Lord and not for men."),
+    ("Romans 12:2", "Do not be conformed to this world, but be transformed by the renewal of your mind, that by testing you may discern what is the will of God."),
+    ("Habakkuk 2:2", "And the Lord answered me: 'Write the vision; make it plain on tablets, so he may run who reads it.'"),
+    ("Ecclesiastes 3:1", "For everything there is a season, and a time for every matter under heaven."),
+    ("Psalm 119:105", "Your word is a lamp to my feet and a light to my path."),
+    ("Job 12:13", "With God are wisdom and might; he has counsel and understanding.")
+]
+
 # =====================================================================
-# 3. PROPHETIC ANCHOR ENDPOINT INTEGRATION (JSDELIVR BIBLE API)
+# 3. DYNAMIC SCRIPTURAL ANCHOR SELECTOR
 # =====================================================================
-def fetch_prophetic_anchor_verse(verse_ref, version="en-kjv"):
-    try:
-        match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
-        if not match:
-            return {"reference": verse_ref, "text": None, "source_endpoint": None}
-
-        book_raw = match.group(1).strip().lower().replace(" ", "")
-        chapter = match.group(2)
-        verse = match.group(3)
-
-        verse_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}/verses/{verse}.json"
-        
-        req = urllib.request.Request(verse_url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            if resp.status == 200:
-                data = json.loads(resp.read().decode('utf-8'))
-                text = data.get("text", "").strip()
-                return {
-                    "reference": f"{data.get('book', {}).get('name', book_raw)} {chapter}:{verse}",
-                    "text": text,
-                    "source_endpoint": verse_url
-                }
-    except Exception:
-        try:
-            match = re.search(r"([1-3]?\s*[A-Za-z]+)\s+(\d+):(\d+)", verse_ref)
-            if match:
-                book_raw = match.group(1).strip().lower().replace(" ", "")
-                chapter = match.group(2)
-                verse_num = int(match.group(3))
-
-                chapter_url = f"https://cdn.jsdelivr.net/gh/wldeh/bible-api/bibles/{version}/books/{book_raw}/chapters/{chapter}.json"
-                req = urllib.request.Request(chapter_url, headers={'User-Agent': 'Mozilla/5.0'})
-                
-                with urllib.request.urlopen(req, timeout=5) as resp:
-                    if resp.status == 200:
-                        data = json.loads(resp.read().decode('utf-8'))
-                        verses_list = data if isinstance(data, list) else data.get("verses", [])
-                        for v in verses_list:
-                            if str(v.get("verse")) == str(verse_num):
-                                return {
-                                    "reference": f"{book_raw.capitalize()} {chapter}:{verse_num}",
-                                    "text": v.get("text", "").strip(),
-                                    "source_endpoint": chapter_url
-                                }
-        except Exception as e:
-            print(f"[WARN] Failed to retrieve CDN prophetic anchor verse: {e}")
-
-    return {"reference": verse_ref, "text": "And they that shall be of thee shall build the old waste places: thou shalt raise up the foundations of many generations; and thou shalt be called, The repairer of the breach, The restorer of paths to dwell in.", "source_endpoint": "fallback"}
+def select_dynamic_prophetic_anchor(node_name, tti, shi, delta):
+    seed = f"{node_name}_{tti}_{shi}_{delta}"
+    hash_val = int(hashlib.sha256(seed.encode('utf-8')).hexdigest(), 16)
+    idx = hash_val % len(SCRIPTURE_ANCHOR_REPOSITORY)
+    ref, txt = SCRIPTURE_ANCHOR_REPOSITORY[idx]
+    
+    return {
+        "reference": ref,
+        "text": txt,
+        "source_endpoint": "dynamic_scripture_matrix",
+        "context": f"Calculated differential anchor ({delta}) for node {node_name} under technical integrity ({tti}) and systemic health ({shi})."
+    }
 
 # =====================================================================
 # 4. METRIC CALCULATION CORE WITH 72 ENTITY MAPPINGS
@@ -271,21 +251,21 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     bottlenecks = calculated_metrics.get("mapped_bottlenecks", raw_data.get("sweep_summary", {}).get("bottlenecks_list", []))
     protocols = calculated_metrics.get("mapped_protocols", raw_data.get("sweep_summary", {}).get("protocols_list", []))
 
+    # Clean double prefixes from historical parallel title
+    hist_parallel = raw_data.get("historical_parallel", f"The Fall of the Roman Empire (395-476 AD) due to uncompensated institutional friction reflecting modern challenges of {node_name}.")
+    hist_parallel = re.sub(r"^(Parallel Era:\s*)+", "", hist_parallel, flags=re.IGNORECASE)
+
     old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description", "Legacy systems operated under accumulated structural friction, uncompensated bottleneck buildup, and widespread institutional decay.")
     modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way", "The UESP PRCE framework executes a complete structural and dimensional realignment to eliminate friction, optimize throughput, and restore systemic integrity.")
     
     old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
     modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
 
-    hist_parallel = raw_data.get("historical_parallel", "Parallel Era: Foundational Restoration and Structural Alignment")
-    biblical_obj = raw_data.get("biblical_tie", {})
-    
-    raw_verse_cite = biblical_obj.get("verse", "Isaiah 58:12")
-    anchor_verse_data = fetch_prophetic_anchor_verse(raw_verse_cite)
+    # Calculate dynamic biblical anchor mapped to calculated TTI/SHI/Delta
+    anchor_verse_data = select_dynamic_prophetic_anchor(node_name, modern["tti"], modern["shi"], modern["delta"])
 
-    # Elaborate multi-paragraph protocol text ensuring 1200+ words depth across sections
     raw_protocol = raw_data.get("protocol", "")
-    if len(raw_protocol.split()) < 150:
+    if len(raw_protocol.split()) < 100:
         raw_protocol = (
             f"Execution Protocol Overview: The system node '{node_name}' requires an immediate, comprehensive "
             "structural overhaul across its operational lifecycle. By deploying active UESP protocols, we systematically "
@@ -296,9 +276,8 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
             "executes a precise dimensional overwrite. Active angelic protocols restore harmony, streamline resource allocation, "
             "and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
             "Future-Proofing & Execution Mandate: Sustained high technical integrity (TTI) and systemic health (SHI) require "
-            "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to the calculated stoichiometric "
-            "ratios and prophetic anchors, the organization secures absolute operational sovereignty, ensuring unhindered scalability "
-            "and enduring systemic triumph."
+            "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to calculated stoichiometric "
+            "ratios and prophetic anchors, the organization secures absolute operational sovereignty and enduring systemic triumph."
         )
 
     return {
@@ -313,7 +292,7 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
             "verse": anchor_verse_data["reference"],
             "scripture_text": anchor_verse_data["text"],
             "cdn_endpoint": anchor_verse_data["source_endpoint"],
-            "context": biblical_obj.get("context", "Sequential alignment of system components under unified law.")
+            "context": anchor_verse_data["context"]
         },
         "protocol": raw_protocol,
         "uesp_final_protocol": raw_protocol,
@@ -361,7 +340,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
         timeout=120.0
     )
 
-    print(f"[DISPATCH] Executing Ephemeral RAG Shinobi Instance via model: {model_name}")
+    print(f"[DISPATCH] Executing Ephemeral RAG Instance via model: {model_name}")
     
     completion = client.chat.completions.create(
         model=model_name,
@@ -386,18 +365,14 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
     except Exception:
         raw_data = {
             "node": "System Node",
-            "historical_parallel": "Parallel Era: Foundational Restoration and Structural Alignment",
+            "historical_parallel": "The Peloponnesian War (431-404 BC) mirroring systemic friction and resource challenges.",
             "sweep_summary": {
                 "bottlenecks_list": calculated_metrics['mapped_bottlenecks'],
                 "protocols_list": calculated_metrics['mapped_protocols']
             },
             "legacy_vs_modern_analysis": {
-                "old_way_description": "Legacy operations constrained by unmanaged systemic friction, leading to severe institutional decay and throughput bottlenecks.",
-                "uesp_prce_modern_way": "Comprehensive structural overwrite executing multi-layered alignment protocols to ensure absolute technical integrity."
-            },
-            "biblical_tie": {
-                "verse": "Isaiah 58:12",
-                "context": "Restoring foundational waste places and establishing permanent system integrity."
+                "old_way_description": "Legacy operations were constrained by unmanaged systemic friction, leading to severe structural bottlenecks and institutional decay.",
+                "uesp_prce_modern_way": "A modern UESP resolution involves executing AI-driven predictive maintenance, continuous monitoring, and structural alignment protocols."
             },
             "protocol": content if len(content) > 100 else "Comprehensive multi-paragraph execution protocol for system integrity and dimensional realignment."
         }
@@ -431,29 +406,24 @@ def execute_scan():
     - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
 
     STRICT INSTRUCTIONS:
-    1. 'historical_parallel': Provide an actual historical event title and date range between 586 AD and 1990 AD relevant to {node}.
+    1. 'historical_parallel': Provide an actual historical event title and date range relevant to {node} (DO NOT include the literal text 'Parallel Era:' in the title string).
     2. 'old_way_description': Elaborate in detailed paragraphs how the old, legacy system operated under uncompensated structural friction, bottleneck buildup, and institutional decay without mentioning physics or thermodynamics.
     3. 'uesp_prce_modern_way': Elaborate in detailed paragraphs how the UESP PRCE Modern Way executes a complete dimensional overwrite to eliminate bottlenecks, restore integrity (TTI: {calculated_metrics['modern_uesp']['tti']}), and stabilize systemic health (SHI: {calculated_metrics['modern_uesp']['shi']}).
-    4. 'biblical_tie': Provide an actual Bible verse citation (e.g. "Isaiah 58:12") and explain its direct prophetic resonance with {node}'s structural restoration.
-    5. 'protocol': Provide an extensive, deep, multi-paragraph executive protocol (at least 4-5 rich paragraphs) outlining operational mechanics, systemic forensics, and execution mandates.
+    4. 'protocol': Provide an extensive, deep, multi-paragraph executive protocol (at least 4-5 rich paragraphs) outlining operational mechanics, systemic forensics, and execution mandates.
 
     DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
 
     OUTPUT STRICTLY IN THIS JSON FORMAT:
     {{
       "node": "{node}",
-      "historical_parallel": "Parallel Era: The Six-Day War and Territorial Reconfiguration of June 5-10, 1967 AD",
+      "historical_parallel": "The Fall of the Roman Empire (395-476 AD) due to corruption and internal strife",
       "sweep_summary": {{
         "bottlenecks_list": {json.dumps(calculated_metrics['mapped_bottlenecks'])},
         "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])}
       }},
       "legacy_vs_modern_analysis": {{
-        "old_way_description": "Detailed multi-paragraph description of legacy friction and system failures...",
-        "uesp_prce_modern_way": "Detailed multi-paragraph description of UESP PRCE modern dimensional overwrite resolution..."
-      }},
-      "biblical_tie": {{
-        "verse": "Isaiah 58:12",
-        "context": "Direct prophetic explanation of scripture resonance..."
+        "old_way_description": "A decline in moral and ethical standards led to the downfall of historical systems, reflected in the erosion of trust in legacy institutions...",
+        "uesp_prce_modern_way": "The current resolution involves navigating complex landscapes by deploying AI-driven monitoring, sustainable resource allocation, and structural alignment..."
       }},
       "protocol": "Extensive multi-paragraph executive protocol detailing operational alignment, structural forensics, and execution steps...",
       "session_id": "{session_id}"
@@ -469,7 +439,7 @@ def execute_scan():
     raw_output = None
     winning_model = None
 
-    print(f"[PARALLEL START] Racing {len(nvidia_models)} Ephemeral RAG Shinobi / Tailed-Beast Instances...")
+    print(f"[PARALLEL START] Racing {len(nvidia_models)} Ephemeral RAG Instances...")
     with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
         futures = {
             executor.submit(
@@ -492,24 +462,11 @@ def execute_scan():
         raw_output = synthesize_hybrid_payload({
             "node": node,
             "session_id": session_id,
-            "historical_parallel": "Parallel Era: Foundational Restoration and Alignment",
+            "historical_parallel": "The Peloponnesian War (431-404 BC) mirroring systemic friction and resource challenges.",
             "legacy_vs_modern_analysis": {
-                "old_way_description": "Legacy operations constrained by unmanaged systemic friction and structural decay.",
-                "uesp_prce_modern_way": "Complete structural override and alignment protocol deployed for maximum operational integrity."
-            },
-            "protocol": (
-                "Execution Protocol Overview: The system node requires an immediate, comprehensive "
-                "structural overhaul across its operational lifecycle. By deploying active UESP protocols, we systematically "
-                "isolate and neutralize institutional friction vectors and systemic bottlenecks. This intervention bridges historical "
-                "precedents with advanced predictive analytics, ensuring long-term institutional stability and resilience.\n\n"
-                "Operational Mechanics & Alignment: Every operational layer within the enterprise architecture is cross-referenced "
-                "against absolute mathematical alignments. Rather than relying on trial-and-error reactive measures, the framework "
-                "executes a precise dimensional overwrite. Active protocols restore harmony, streamline resource allocation, "
-                "and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
-                "Future-Proofing & Execution Mandate: Sustained high technical integrity and systemic health require "
-                "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to calculated stoichiometric "
-                "ratios and prophetic anchors, the organization secures absolute operational sovereignty and enduring systemic triumph."
-            )
+                "old_way_description": "Legacy operations were constrained by unmanaged systemic friction, leading to severe structural bottlenecks and institutional decay.",
+                "uesp_prce_modern_way": "A modern UESP resolution involves executing AI-driven predictive maintenance, continuous monitoring, and structural alignment protocols."
+            }
         }, calculated_metrics)
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
