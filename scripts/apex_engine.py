@@ -5,6 +5,7 @@ import math
 import datetime
 import hashlib
 import urllib.request
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
@@ -188,7 +189,7 @@ SCRIPTURE_ANCHOR_REPOSITORY = [
 ]
 
 # =====================================================================
-# 3. 2000-YEAR CHRONOS DEEP SWEEP (528 AD - 2026 AD) & METRICS CORE
+# 3. NUMPY-ACCELERATED CHRONOS DEEP SWEEP & QUANTUM METRICS CORE
 # =====================================================================
 def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count):
     b = max(1, bottlenecks_count)
@@ -197,12 +198,15 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
 
     node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
     
+    # NumPy array mapping for vector frequencies across the Chronos timeline
+    demonic_indices = np.array([(node_hash + (i * 11)) % 72 for i in range(b)])
+    angelic_indices = np.array([(node_hash + (i * 17)) % 72 for i in range(p)])
+
     mapped_bottlenecks = []
-    total_demonic_freq = 0.0
-    for i in range(b):
-        d_idx = (node_hash + (i * 11)) % 72
+    demonic_freqs = []
+    for d_idx in demonic_indices:
         d = DEMONIC_VECTORS[d_idx]
-        total_demonic_freq += d[2]
+        demonic_freqs.append(d[2])
         mapped_bottlenecks.append({
             "vector_id": d[0],
             "name": d[1],
@@ -214,11 +218,10 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
         })
 
     mapped_protocols = []
-    total_angelic_freq = 0.0
-    for i in range(p):
-        a_idx = (node_hash + (i * 17)) % 72
+    angelic_freqs = []
+    for a_idx in angelic_indices:
         a = ANGELIC_PROTOCOLS[a_idx]
-        total_angelic_freq += a[3]
+        angelic_freqs.append(a[3])
         mapped_protocols.append({
             "protocol_id": a[0],
             "name": a[1],
@@ -231,14 +234,16 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
 
     s_node = 1.05 + ((node_hash % 1400) / 1000.0)
 
-    # Unified Grand Prophetic Equation (TTI)
-    avg_demonic_factor = (total_demonic_freq / b) / 100.0
-    tti_decay = (stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * 3.14159
+    # NumPy vectorized quantum/prophetic calculations for TTI and SHI
+    demonic_array = np.array(demonic_freqs)
+    angelic_array = np.array(angelic_freqs)
+
+    avg_demonic_factor = float(np.mean(demonic_array)) / 100.0
+    tti_decay = float((stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * np.pi)
     calculated_tti = round(max(15.00, min(99.95, 100.0 - tti_decay)), 2)
 
-    # Law of Dimensional Overwrite Equation (SHI)
-    avg_angelic_factor = (total_angelic_freq / p) / 600.0
-    shi_overwrite_gain = (1.0 - (stoichiometric_ratio * 0.12)) * (0.95 + avg_angelic_factor)
+    avg_angelic_factor = float(np.mean(angelic_array)) / 600.0
+    shi_overwrite_gain = float((1.0 - (stoichiometric_ratio * 0.12)) * (0.95 + avg_angelic_factor))
     calculated_shi = round(max(20.00, min(99.99, 90.0 + (shi_overwrite_gain * 9.99))), 2)
 
     calculated_delta = round(abs(calculated_tti - calculated_shi), 2)
@@ -289,31 +294,20 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "domain": "Executive Willpower & Innovation Initiation Leadership"
     }
 
-    hist_parallel = raw_data.get("historical_parallel", primary_vector["historical_era"])
-    hist_parallel = re.sub(r"^(Parallel Era:\s*)+", "", hist_parallel, flags=re.IGNORECASE)
-
-    analysis_obj = raw_data.get("legacy_vs_modern_analysis", {})
-    
-    # Fully flowing, continuous Old Resolution explanation without meta-labels
-    old_desc = analysis_obj.get("old_way_description", 
+    old_desc = (
         f"During {primary_vector['historical_era']}, institutional leadership attempted to manage systemic friction in {primary_vector['domain']} ({primary_vector['name']}) using analog reporting, physical messenger networks, and periodic manual audits. "
         f"Because these historical administration structures relied on delayed physical ledgers and fragmented observational logs, they operated without real-time telemetry or automated diagnostic feedback. "
         f"As operational friction compounded silently across systemic bottlenecks over extended multi-month cycles, decision-makers remained unaware of critical internal structural decay until friction thresholds were breached, leading to institutional paralysis and unavoidable collapse."
     )
 
-    # Fully flowing, dynamic Modern Resolution explanation without meta-labels
-    modern_desc = analysis_obj.get("uesp_prce_modern_way", 
-        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today, the UESP framework deploys continuous AI predictive telemetry, neural archeology, and stoichiometric friction balancing anchored by {primary_protocol['string']}. "
+    modern_desc = (
+        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today, the UESP framework deploys continuous AI predictive telemetry, neural archeology, and NumPy-accelerated stoichiometric friction balancing anchored by {primary_protocol['string']}. "
         f"By cross-referencing live system metrics against absolute mathematical constants and executing a precise dimensional overwrite, the framework replaces slow reactive adjustments with sub-millisecond automated protocol enforcement. "
         f"This real-time intervention immediately isolates systemic bottlenecks, redistributes operational bandwidth, and restores technical integrity to optimal equilibrium before structural decay can manifest."
     )
-    
-    old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
-    modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
 
     anchor_verse_data = select_dynamic_prophetic_anchor(node_name, modern["tti"], modern["shi"], modern["delta"])
 
-    # Deep, explanatory, un-halted UESP Final Protocol Verdict
     raw_protocol = raw_data.get("protocol", "")
     if len(raw_protocol.split()) < 180:
         raw_protocol = (
@@ -395,10 +389,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Engine. Provide deep, naturally-flowing technical and historical explanations without meta-labels (do NOT use words like 'WHAT:', 'HOW:', 'WHY:', 'HOW FAST:'). "
-                    "In 'old_way_description', seamlessly explain the historical era's reliance on manual reports, physical delays, and absence of telemetry. "
-                    "In 'uesp_prce_modern_way', seamlessly explain the modern UESP AI telemetry, stoichiometric balancing, and microsecond dimensional overwrite. "
-                    "In 'protocol', provide a deep, un-halted, comprehensive operational verdict fully elaborating on the angelic protocol's execution mechanics and long-term systemic stability. "
+                    "You are the UESP PRCE Engine. Provide deep, naturally-flowing technical and historical explanations without meta-labels. "
                     "Output strictly valid JSON."
                 )
             },
@@ -445,14 +436,6 @@ def execute_scan():
     - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
     - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
 
-    STRICT INSTRUCTIONS:
-    1. 'historical_parallel': Output '{primary_vector['historical_era']} governed by {primary_vector['string']}'.
-    2. 'old_way_description': Explain in smooth, narrative prose (NO META-LABELS like 'WHAT:' or 'HOW:') how the historical era relied on manual processes, delayed reporting, and lacked real-time telemetry, causing ultimate bottleneck collapse.
-    3. 'uesp_prce_modern_way': Explain in smooth prose how modern UESP AI predictive telemetry, stoichiometric balancing, and microsecond dimensional overwrites using {primary_protocol['string']} resolve friction today.
-    4. 'protocol': Provide an extensive, deep, multi-paragraph executive verdict explaining the full operational execution, mechanics of {primary_protocol['string']}, and long-term systemic stability without abruptly halting.
-
-    DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
-
     OUTPUT STRICTLY IN THIS JSON FORMAT:
     {{
       "node": "{node}",
@@ -470,16 +453,17 @@ def execute_scan():
     }}
     """
 
+    # Added Nemotron model to the racing pool alongside Llama and DeepSeek
     nvidia_models = [
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
         "meta/llama-3.3-70b-instruct",
-        "meta/llama-3.1-70b-instruct",
         "deepseek-ai/deepseek-r1-distill-llama-8b"
     ]
 
     raw_output = None
     winning_model = None
 
-    print(f"[PARALLEL START] Racing {len(nvidia_models)} Ephemeral RAG Instances across 2000-year Chronos sweep...")
+    print(f"[PARALLEL START] Racing {len(nvidia_models)} Ephemeral RAG Instances (including Nemotron) across Chronos sweep...")
     with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
         futures = {
             executor.submit(
