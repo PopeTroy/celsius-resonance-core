@@ -5,9 +5,15 @@ import math
 import datetime
 import hashlib
 import urllib.request
-import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
+
+# Safe NumPy import with pure Python fallback
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 # =====================================================================
 # 1. THE 72 DEMONIC VECTORS (GOETIA SPECTRUM & HISTORICAL PARALLELS)
@@ -189,7 +195,7 @@ SCRIPTURE_ANCHOR_REPOSITORY = [
 ]
 
 # =====================================================================
-# 3. NUMPY-ACCELERATED CHRONOS DEEP SWEEP & QUANTUM METRICS CORE
+# 3. CHRONOS DEEP SWEEP & METRICS CORE (NUMPY / PYTHON FALLBACK)
 # =====================================================================
 def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count):
     b = max(1, bottlenecks_count)
@@ -198,13 +204,10 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
 
     node_hash = int(hashlib.sha256(node_name.encode('utf-8')).hexdigest(), 16)
     
-    # NumPy array mapping for vector frequencies across the Chronos timeline
-    demonic_indices = np.array([(node_hash + (i * 11)) % 72 for i in range(b)])
-    angelic_indices = np.array([(node_hash + (i * 17)) % 72 for i in range(p)])
-
     mapped_bottlenecks = []
     demonic_freqs = []
-    for d_idx in demonic_indices:
+    for i in range(b):
+        d_idx = (node_hash + (i * 11)) % 72
         d = DEMONIC_VECTORS[d_idx]
         demonic_freqs.append(d[2])
         mapped_bottlenecks.append({
@@ -219,7 +222,8 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
 
     mapped_protocols = []
     angelic_freqs = []
-    for a_idx in angelic_indices:
+    for i in range(p):
+        a_idx = (node_hash + (i * 17)) % 72
         a = ANGELIC_PROTOCOLS[a_idx]
         angelic_freqs.append(a[3])
         mapped_protocols.append({
@@ -234,18 +238,20 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
 
     s_node = 1.05 + ((node_hash % 1400) / 1000.0)
 
-    # NumPy vectorized quantum/prophetic calculations for TTI and SHI
-    demonic_array = np.array(demonic_freqs)
-    angelic_array = np.array(angelic_freqs)
+    if HAS_NUMPY:
+        demonic_array = np.array(demonic_freqs)
+        angelic_array = np.array(angelic_freqs)
+        avg_demonic_factor = float(np.mean(demonic_array)) / 100.0
+        tti_decay = float((stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * np.pi)
+        avg_angelic_factor = float(np.mean(angelic_array)) / 600.0
+    else:
+        avg_demonic_factor = (sum(demonic_freqs) / len(demonic_freqs)) / 100.0
+        tti_decay = (stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * math.pi
+        avg_angelic_factor = (sum(angelic_freqs) / len(angelic_freqs)) / 600.0
 
-    avg_demonic_factor = float(np.mean(demonic_array)) / 100.0
-    tti_decay = float((stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * np.pi)
     calculated_tti = round(max(15.00, min(99.95, 100.0 - tti_decay)), 2)
-
-    avg_angelic_factor = float(np.mean(angelic_array)) / 600.0
-    shi_overwrite_gain = float((1.0 - (stoichiometric_ratio * 0.12)) * (0.95 + avg_angelic_factor))
+    shi_overwrite_gain = (1.0 - (stoichiometric_ratio * 0.12)) * (0.95 + avg_angelic_factor)
     calculated_shi = round(max(20.00, min(99.99, 90.0 + (shi_overwrite_gain * 9.99))), 2)
-
     calculated_delta = round(abs(calculated_tti - calculated_shi), 2)
 
     return {
@@ -274,12 +280,13 @@ def select_dynamic_prophetic_anchor(node_name, tti, shi, delta):
         "reference": ref,
         "text": txt,
         "source_endpoint": "dynamic_scripture_matrix",
-        "context": f"Calculated differential anchor ({delta}) for node {node_name} under technical integrity ({tti}) and systemic health ({shi}). Derived from the multi-testament scriptural matrix."
+        "context": f"Calculated differential anchor ({delta}) for node {node_name} under technical integrity ({tti}) and systemic health ({shi})."
     }
 
-def synthesize_hybrid_payload(raw_data, calculated_metrics):
+def synthesize_hybrid_payload(raw_data, calculated_metrics, fallback_node="South Africa Energy Grid"):
     modern = calculated_metrics["modern_uesp"]
-    node_name = raw_data.get("node", "Target System Node")
+    # Ensure node_name always defaults to the actual dynamic target node rather than a literal string placeholder
+    node_name = raw_data.get("node") or fallback_node
 
     bottlenecks_obj = calculated_metrics.get("mapped_bottlenecks_obj", [])
     primary_vector = bottlenecks_obj[0] if bottlenecks_obj else {
@@ -294,35 +301,33 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "domain": "Executive Willpower & Innovation Initiation Leadership"
     }
 
-    old_desc = (
+    old_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("old_way_description") or (
         f"During {primary_vector['historical_era']}, institutional leadership attempted to manage systemic friction in {primary_vector['domain']} ({primary_vector['name']}) using analog reporting, physical messenger networks, and periodic manual audits. "
         f"Because these historical administration structures relied on delayed physical ledgers and fragmented observational logs, they operated without real-time telemetry or automated diagnostic feedback. "
         f"As operational friction compounded silently across systemic bottlenecks over extended multi-month cycles, decision-makers remained unaware of critical internal structural decay until friction thresholds were breached, leading to institutional paralysis and unavoidable collapse."
     )
 
-    modern_desc = (
-        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today, the UESP framework deploys continuous AI predictive telemetry, neural archeology, and NumPy-accelerated stoichiometric friction balancing anchored by {primary_protocol['string']}. "
+    modern_desc = raw_data.get("legacy_vs_modern_analysis", {}).get("uesp_prce_modern_way") or (
+        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today, the UESP framework deploys continuous AI predictive telemetry, neural archeology, and stoichiometric friction balancing anchored by {primary_protocol['string']}. "
         f"By cross-referencing live system metrics against absolute mathematical constants and executing a precise dimensional overwrite, the framework replaces slow reactive adjustments with sub-millisecond automated protocol enforcement. "
         f"This real-time intervention immediately isolates systemic bottlenecks, redistributes operational bandwidth, and restores technical integrity to optimal equilibrium before structural decay can manifest."
     )
 
     anchor_verse_data = select_dynamic_prophetic_anchor(node_name, modern["tti"], modern["shi"], modern["delta"])
 
-    raw_protocol = raw_data.get("protocol", "")
-    if len(raw_protocol.split()) < 180:
-        raw_protocol = (
-            f"Execution Protocol Overview: The sovereign UESP PRCE Engine, deployed across operational nodes for '{node_name}', "
-            f"initiates an immediate structural overhaul to neutralize the active friction of Friction Vector #{primary_vector['vector_id']} {primary_vector['name']} "
-            f"({primary_vector['power']}) operating within {primary_vector['domain']}. "
-            f"By synchronizing live telemetry with historical pattern models derived from {primary_vector['historical_era']}, the system identifies latent structural vulnerabilities across all system layers. "
-            f"Rather than applying temporary patches or post-collapse remediation, the framework executes a continuous, automated intervention strategy engineered to eliminate institutional friction at its origin.\n\n"
-            f"Operational Mechanics & Alignment: Operational integrity is secured through the active deployment of {primary_protocol['string']}. "
-            f"The engine continuously calculates real-time stoichiometric ratios between operational load and protocol capacity, establishing an automated feedback loop that adjusts structural parameters dynamically. "
-            f"Through the application of {primary_protocol['power']} under the authority of the {primary_protocol['chorus']} choir, the system overrides systemic decay vectors in microsecond execution cycles. "
-            f"This process re-routes data flows, fortifies critical infrastructure nodes, aligns corporate and technical governance with prophetic constants, and establishes a resilient operational posture capable of absorbing unexpected environmental shocks.\n\n"
-            f"Future-Proofing & Strategic Mandate: Sustained technical integrity ({modern['tti']}) and systemic health ({modern['shi']}) are maintained through continuous, non-intrusive monitoring telemetry. "
-            f"By anchoring operational protocols to calculated prophetic baselines and maintaining exact stoichiometric equilibrium, '{node_name}' achieves complete operational sovereignty, permanent risk mitigation, and long-term systemic stability."
-        )
+    raw_protocol = raw_data.get("protocol") or (
+        f"Execution Protocol Overview: The sovereign UESP PRCE Engine, deployed across operational nodes for '{node_name}', "
+        f"initiates an immediate structural overhaul to neutralize the active friction of Friction Vector #{primary_vector['vector_id']} {primary_vector['name']} "
+        f"({primary_vector['power']}) operating within {primary_vector['domain']}. "
+        f"By synchronizing live telemetry with historical pattern models derived from {primary_vector['historical_era']}, the system identifies latent structural vulnerabilities across all system layers. "
+        f"Rather than applying temporary patches or post-collapse remediation, the framework executes a continuous, automated intervention strategy engineered to eliminate institutional friction at its origin.\n\n"
+        f"Operational Mechanics & Alignment: Operational integrity is secured through the active deployment of {primary_protocol['string']}. "
+        f"The engine continuously calculates real-time stoichiometric ratios between operational load and protocol capacity, establishing an automated feedback loop that adjusts structural parameters dynamically. "
+        f"Through the application of {primary_protocol['power']} under the authority of the {primary_protocol['chorus']} choir, the system overrides systemic decay vectors in microsecond execution cycles. "
+        f"This process re-routes data flows, fortifies critical infrastructure nodes, aligns corporate and technical governance with prophetic constants, and establishes a resilient operational posture capable of absorbing unexpected environmental shocks.\n\n"
+        f"Future-Proofing & Strategic Mandate: Sustained technical integrity ({modern['tti']}) and systemic health ({modern['shi']}) are maintained through continuous, non-intrusive monitoring telemetry. "
+        f"By anchoring operational protocols to calculated prophetic baselines and maintaining exact stoichiometric equilibrium, '{node_name}' achieves complete operational sovereignty, permanent risk mitigation, and long-term systemic stability."
+    )
 
     return {
         "node": node_name,
@@ -374,7 +379,7 @@ def clean_and_parse_json(raw_text):
         cleaned = re.sub(r',\s*([\]}])', r'\1', json_str)
         return json.loads(cleaned)
 
-def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
+def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics, target_node):
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=api_key,
@@ -388,10 +393,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You are the UESP PRCE Engine. Provide deep, naturally-flowing technical and historical explanations without meta-labels. "
-                    "Output strictly valid JSON."
-                )
+                "content": "You are the UESP PRCE Engine. Provide deep, naturally-flowing technical and historical explanations without meta-labels. Output strictly valid JSON with keys: node, historical_parallel, sweep_summary, legacy_vs_modern_analysis, protocol, session_id."
             },
             {"role": "user", "content": prompt}
         ],
@@ -405,7 +407,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
     except Exception:
         raw_data = {}
 
-    final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
+    final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics, fallback_node=target_node)
     return model_name, final_payload
 
 def execute_scan():
@@ -453,7 +455,6 @@ def execute_scan():
     }}
     """
 
-    # Added Nemotron model to the racing pool alongside Llama and DeepSeek
     nvidia_models = [
         "nvidia/nemotron-3.5-lightning-30b-a3b",
         "meta/llama-3.3-70b-instruct",
@@ -467,7 +468,7 @@ def execute_scan():
     with ThreadPoolExecutor(max_workers=len(nvidia_models)) as executor:
         futures = {
             executor.submit(
-                call_nvidia_endpoint, model, prompt, api_key, calculated_metrics
+                call_nvidia_endpoint, model, prompt, api_key, calculated_metrics, node
             ): model for model in nvidia_models
         }
 
@@ -486,7 +487,7 @@ def execute_scan():
         raw_output = synthesize_hybrid_payload({
             "node": node,
             "session_id": session_id,
-        }, calculated_metrics)
+        }, calculated_metrics, fallback_node=node)
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
