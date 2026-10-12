@@ -30,6 +30,9 @@ jobs:
           git config --global user.name "UESP-Bot"
           git config --global user.email "bot@celsiusmediagroup.co.za"
           
+          # Sync remote changes to prevent commit_refs rejection
+          git pull origin main --rebase || echo "Rebase skipped"
+          
           if [ -n "$(git status --porcelain data/*.json)" ]; then
             echo "[*] Data changes detected. Committing..."
             git add data/*.json
