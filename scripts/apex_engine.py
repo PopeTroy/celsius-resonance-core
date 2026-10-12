@@ -9,81 +9,81 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
 
 # =====================================================================
-# 1. THE 72 DEMONIC VECTORS (GOETIA SPECTRUM)
+# 1. THE 72 DEMONIC VECTORS (GOETIA SPECTRUM & HISTORICAL PARALLELS)
 # =====================================================================
 DEMONIC_VECTORS = [
-    (1, "Bael", 3.330, "Invisibility, wisdom, and leadership manipulation", "Executive Leadership & Strategic Governance Corruption"),
-    (2, "Agares", 6.660, "Halts runners, causes earthquakes, destroys dignity", "Civil Infrastructure & Physical Foundations Engineering"),
-    (3, "Vassago", 9.990, "Discovers hidden things and predicts past/future outcomes", "Predictive Analytics & Forensics Data Mining"),
-    (4, "Gamigin", 13.320, "Teaches liberal sciences and accounts for dead souls", "Educational Systems & Historical Asset Archiving"),
-    (5, "Marbas", 16.650, "Causes and cures systemic diseases, reveals mechanical secrets", "Biomedical Systems & Mechanical Reliability Engineering"),
-    (6, "Valefor", 19.980, "Tempters into theft and deceitful network breaches", "Cybersecurity & Intrusion Vector Analysis"),
-    (7, "Amon", 23.310, "Reconciles feuds and reveals past and future events", "Diplomatic Negotiation & Geopolitical Arbitration"),
-    (8, "Barbatos", 26.640, "Understands animal voices and reveals hidden treasure vaults", "Environmental Acoustic Sensing & Mining Exploration"),
-    (9, "Paimon", 29.970, "Teaches all arts/sciences and binds subjects to absolute will", "Enterprise Architecture & Mass Operational Alignment"),
-    (10, "Buer", 33.300, "Teaches philosophy, logic, and heals moral/physical infirmities", "Clinical Rehabilitation & Systems Logic Design"),
-    (11, "Gusion", 36.630, "Reconciles friendships and grants honor/dignity", "Corporate Relations & Institutional Reputation Management"),
-    (12, "Sitri", 39.960, "Inflames passion and exposes concealed secrets", "Consumer Behavioral Psychology & Market Research"),
-    (13, "Beleth", 43.290, "Causes overwhelming love and emotional subversion", "Media Communications & Public Sentiment Engineering"),
-    (14, "Leraje", 46.620, "Causes severe conflicts, archery battles, and gangrene wounds", "Ballistics Engineering & Trauma Medical Response"),
-    (15, "Eligos", 49.950, "Discovers hidden things and foresees military strategy", "Defense Logistics & Tactical Reconnaissance Strategy"),
-    (16, "Zepar", 53.280, "Causes sterile lockouts and alters physical form", "Materials Science & Structural Integrity Testing"),
-    (17, "Botis", 56.610, "Reconciles allies and foretells future outcomes", "Crisis Management & Conflict Resolution Practice"),
-    (18, "Bathin", 59.940, "Transports entities instantly across spatial dimensions", "High-Speed Logistics & Teleportation Routing"),
-    (19, "Sallos", 63.270, "Promotes peaceful accord and mutual attraction", "Labor Union Mediation & Human Resource Alignment"),
-    (20, "Purson", 66.600, "Discovers hidden treasures and provides clear divination", "Financial Audit & Treasure Asset Recovery"),
-    (21, "Marax", 69.930, "Teaches astronomy, herbal medicine, and precious stones", "Pharmaceutical Botany & Aerospace Navigation"),
-    (22, "Ipos", 73.260, "Reveals secret knowledge and bestows courage/wit", "Intellectual Property Analysis & Critical Thinking"),
-    (23, "Aim", 76.590, "Sets cities on fire and grants sharp intellectual wit", "Thermal Energy Systems & Urban Fire Prevention"),
-    (24, "Naberius", 79.920, "Restores lost honors and teaches rhetoric/logic", "Public Advocacy & Constitutional Rhetoric"),
-    (25, "Glasya-Labolas", 83.250, "Incites bloodshed, teaches all arts, grants invisibility", "Stealth Defense Systems & Tactical Camouflage"),
-    (26, "Bune", 86.580, "Changes dead locations, grants wealth, wisdom, and eloquence", "Urban Renewal & Real Estate Value Extraction"),
-    (27, "Ronove", 89.910, "Teaches rhetoric, foreign languages, and loyal service", "Linguistic Translation & Corporate Diplomacy"),
-    (28, "Berith", 93.240, "Turns metals to gold, bestows high institutional status", "Chemical Metallurgy & Institutional Banking Status"),
-    (29, "Astaroth", 96.570, "Reveals secrets of creation, fall of spirits, liberal sciences", "Theoretical Physics & Fundamental Research"),
-    (30, "Forneus", 99.900, "Teaches rhetoric, foreign tongues, and causes favorable renown", "Global Public Relations & Brand Reputation Strategy"),
-    (31, "Foras", 103.230, "Teaches logic, ethics, prolongs life, locates lost wealth", "Bio-Gerontology & Ethical Algorithm Design"),
-    (32, "Asmodai", 106.560, "Grants invincible power, invulnerability, and math mastery", "Advanced Cryptography & Quantitative Financial Mathematics"),
-    (33, "Gaap", 109.890, "Causes ignorance, teleports entities, disrupts spatial logic", "Spatial Computing & Dimensional Telemetry"),
-    (34, "Furfur", 113.220, "Generates thunder, lightning, storms, and reveals divine truth", "Meteorological Control & Atmospheric High-Voltage Engineering"),
-    (35, "Marchosias", 116.550, "Strong fighter, reliable tactical advice, ultimate endurance", "Physical Security & Tactical Operations Endurance"),
-    (36, "Stolas", 119.880, "Teaches astronomy, virtues of herbs, and precious stones", "Astrophysics & Mineralogy Extraction Systems"),
-    (37, "Phenex", 123.210, "Sings wonderful melodies, teaches sciences, poetry writer", "Acoustics Engineering & Computational Literature"),
-    (38, "Halphas", 126.540, "Builds towers, supplies ammunition, and punishes enemies", "Heavy Munitions Supply Chain & Defensive Tower Construction"),
-    (39, "Malphas", 129.870, "Builds houses/high towers, reveals enemy desires/actions", "High-Rise Architectural Engineering & Industrial Espionage Defense"),
-    (40, "Raum", 133.200, "Steals treasure, destroys cities, foretells future events", "Demolition Engineering & Strategic Risk Forecasting"),
-    (41, "Focalor", 136.530, "Sinks warships, commands winds/seas, inflicts drowning", "Naval Architecture & Marine Hydrodynamics"),
-    (42, "Vepar", 139.860, "Governs waters, guides fleets, causes putrid wound corruption", "Maritime Transport Fleet Control & Environmental Infection Prevention"),
-    (43, "Sabnock", 143.190, "Builds high towers, inflicts gangrenous worm wounds", "Structural Fortification & Biological Containment"),
-    (44, "Shax", 146.520, "Deprives sight, hearing, and intellect; steals hidden items", "Sensory Deprivation Countermeasures & Asset Security"),
-    (45, "Vine", 149.850, "Discovers hidden secrets, builds towers, collapses stone walls", "Civil Infrastructure Demolition & Underground Surveying"),
-    (46, "Bifrons", 153.180, "Teaches astrology, geometry, herbs, and moves dead bodies", "Surveying Geometry & Hazardous Waste Management"),
-    (47, "Uvall", 156.510, "Procures love of friends, reconciles enemies, speaks ancient tongues", "Cross-Cultural Mediation & Archaeology Restoration"),
-    (48, "Haagenti", 159.840, "Makes men wise, transmutes metals into gold, turns water to wine", "Chemical Engineering & Industrial Transmutation"),
-    (49, "Crocell", 163.170, "Teaches geometry, warms bodies of water, creates roaring sounds", "Geothermal Hydro-Engineering & Computational Geometry"),
-    (50, "Furcas", 166.500, "Teaches philosophy, astrology, rhetoric, logic, and chiromancy", "Formal Logic Systems & Applied Philosophy"),
-    (51, "Balam", 169.830, "Grants perfect memory, foretells past/future, grants invisibility", "High-Density Data Memory Storage & Predictive Modeling"),
-    (52, "Alloces", 173.160, "Teaches astronomy, liberal arts, provides excellent familiars", "Autonomous Robotics Engineering & Observational Astronomy"),
-    (53, "Camio", 176.490, "Understands bird calls, water sounds, and translates news", "Bio-Acoustic Signal Processing & News Synthesis"),
-    (54, "Murmur", 179.820, "Teaches philosophy, compels deceased souls to answer questions", "Historical Forensics & Philosophical Logic Inquiry"),
-    (55, "Orobas", 183.150, "Discovers divinity, prevents deception, bestows prelacies/dignities", "Anti-Fraud Compliance & Integrity Verification"),
-    (56, "Gremory", 186.480, "Reveals hidden treasures, bestows love, foretells future events", "Sub-Surface Geophysical Exploration & Financial Opportunity Forecasting"),
-    (57, "Ose", 189.810, "Teaches secret/divine sciences, changes human shape at will", "Advanced Materials Metamorphism & Molecular Biology"),
-    (58, "Amy", 193.140, "Teaches astrology, liberal arts, reveals hidden treasures", "Astronomical Data Science & Mineral Asset Valuation"),
-    (59, "Orias", 196.470, "Teaches virtues of stars, bestows dignities, converts enemies", "Satellite Telecommunications & Executive Reconciliations"),
-    (60, "Vapula", 199.800, "Teaches manual crafts, philosophy, and advanced technical knowledge", "Precision Machining & Advanced Vocational Technical Education"),
-    (61, "Zagan", 203.130, "Makes fools wise, turns wine to water, turns metals into gold", "Cognitive Enhancement Systems & Process Optimization"),
-    (62, "Volac", 206.460, "Reveals location of serpents, reveals hidden gold/treasures", "Hazardous Biological Mapping & Precious Metal Geological Survey"),
-    (63, "Andras", 209.790, "Sows discord, destroys opponents, commands escalation", "Information Warfare & Escalation Dominance Management"),
-    (64, "Haures", 213.120, "Destroys enemies by fire, foretells past/future, shields from fraud", "High-Temperature Thermodynamics & Fraud Prevention Systems"),
-    (65, "Andrealphus", 216.450, "Teaches geometry, measurement, transforms men into birds", "Aerodynamic Geometry & Precision Dimensional Metrology"),
-    (66, "Cimejes", 219.780, "Locates lost treasures, teaches grammar, logic, rhetoric", "Natural Language Processing (NLP) & Resource Asset Discovery"),
-    (67, "Amdusias", 223.110, "Commands trees to bend, provides musical instruments/orchestrations", "Forestry Engineering & Computational Acoustic Design"),
-    (68, "Belial", 226.440, "Distributes high titles, reconciles political power, bestows favor", "Political Cabinet Diplomacy & Public Executive Relations"),
-    (69, "Decarabia", 229.770, "Teaches virtues of birds/herbs, commands illusionary phantoms", "Agricultural Botany & Optical Holography Engineering"),
-    (70, "Seere", 233.100, "Brings instant abundance, teleports items, completes tasks immediately", "Ultra-Low Latency Freight Delivery & Instant Asset Clearing"),
-    (71, "Dantalion", 236.430, "Reads and alters thoughts of minds, teaches all arts/sciences", "Neural Engineering & Cognitive Interface Analytics"),
-    (72, "Andromalius", 239.760, "Catches thieves, returns stolen goods, reveals hidden conspiracies", "Loss Prevention Operations & Counter-Intelligence Forensics")
+    (1, "Bael", 3.330, "Invisibility, wisdom, and leadership manipulation", "Executive Leadership & Strategic Governance Corruption", "The Neo-Assyrian Imperial Court Intrigues (745-612 BC)"),
+    (2, "Agares", 6.660, "Halts runners, causes earthquakes, destroys dignity", "Civil Infrastructure & Physical Foundations Engineering", "The Great Antioch Earthquake and Structural Reconstruction (526 AD)"),
+    (3, "Vassago", 9.990, "Discovers hidden things and predicts past/future outcomes", "Predictive Analytics & Forensics Data Mining", "The Delphic Oracle Intelligence and State Prognostication Era (8th Century BC)"),
+    (4, "Gamigin", 13.320, "Teaches liberal sciences and accounts for dead souls", "Educational Systems & Historical Asset Archiving", "The Library of Alexandria Archival and Scholastic Era (300 BC - 48 BC)"),
+    (5, "Marbas", 16.650, "Causes and cures systemic diseases, reveals mechanical secrets", "Biomedical Systems & Mechanical Reliability Engineering", "The Antonine Plague and Galenic Medical Quarantine Era (165-180 AD)"),
+    (6, "Valefor", 19.980, "Tempters into theft and deceitful network breaches", "Cybersecurity & Intrusion Vector Analysis", "The Roman Currency Devaluation and Treasury Breach Era (235-284 AD)"),
+    (7, "Amon", 23.310, "Reconciles feuds and reveals past and future events", "Diplomatic Negotiation & Geopolitical Arbitration", "The Congress of Vienna and European Statecraft Arbitration (1814-1815 AD)"),
+    (8, "Barbatos", 26.640, "Understands animal voices and reveals hidden treasure vaults", "Environmental Acoustic Sensing & Mining Exploration", "The Roman Subterranean Silver Mining and Acoustic Surveying Era (100 BC - 200 AD)"),
+    (9, "Paimon", 29.970, "Teaches all arts/sciences and binds subjects to absolute will", "Enterprise Architecture & Mass Operational Alignment", "The Pyramid Construction Workforce Standardization Era (2500 BC)"),
+    (10, "Buer", 33.300, "Teaches philosophy, logic, and heals moral/physical infirmities", "Clinical Rehabilitation & Systems Logic Design", "The Athenian Periclean Academy and Philosophical Rehabilitation Era (450 BC)"),
+    (11, "Gusion", 36.630, "Reconciles friendships and grants honor/dignity", "Corporate Relations & Institutional Reputation Management", "The Pax Romana Diplomatic Alliance and Client State Era (27 BC - 180 AD)"),
+    (12, "Sitri", 39.960, "Inflames passion and exposes concealed secrets", "Consumer Behavioral Psychology & Market Research", "The Pompeii Commercial Agora and Public Sentiment Era (79 AD)"),
+    (13, "Beleth", 43.290, "Causes overwhelming love and emotional subversion", "Media Communications & Public Sentiment Engineering", "The Byzantine Imperial Propaganda and Court Spectacle Era (527-565 AD)"),
+    (14, "Leraje", 46.620, "Causes severe conflicts, archery battles, and gangrene wounds", "Ballistics Engineering & Trauma Medical Response", "The Hundred Years' War Longbow Ballistics and Field Surgery Era (1337-1453 AD)"),
+    (15, "Eligos", 49.950, "Discovers hidden things and foresees military strategy", "Defense Logistics & Tactical Reconnaissance Strategy", "The Sun Tzu War College and Strategic Espionage Era (500 BC)"),
+    (16, "Zepar", 53.280, "Causes sterile lockouts and alters physical form", "Materials Science & Structural Integrity Testing", "The Damascene Steel Metallurgy and Forging Inspection Era (1000-1500 AD)"),
+    (17, "Botis", 56.610, "Reconciles allies and foretells future outcomes", "Crisis Management & Conflict Resolution Practice", "The Treaty of Westphalia State Sovereignty Settlement Era (1648 AD)"),
+    (18, "Bathin", 59.940, "Transports entities instantly across spatial dimensions", "High-Speed Logistics & Teleportation Routing", "The Silk Road Transcontinental Caravan Logistics Era (130 BC - 1453 AD)"),
+    (19, "Sallos", 63.270, "Promotes peaceful accord and mutual attraction", "Labor Union Mediation & Human Resource Alignment", "The Roman Plebeian Secession and Guild Mediation Era (494 BC)"),
+    (20, "Purson", 66.600, "Discovers hidden treasures and provides clear divination", "Financial Audit & Treasure Asset Recovery", "The Delian League Imperial Treasury Audit and Seizure Era (478 BC)"),
+    (21, "Marax", 69.930, "Teaches astronomy, herbal medicine, and precious stones", "Pharmaceutical Botany & Aerospace Navigation", "The Alexandrian Botanical and Astrolabe Navigation Era (150 BC)"),
+    (22, "Ipos", 73.260, "Reveals secret knowledge and bestows courage/wit", "Intellectual Property Analysis & Critical Thinking", "The Renaissance Florentine Codex and Intellectual Awakening Era (1450-1600 AD)"),
+    (23, "Aim", 76.590, "Sets cities on fire and grants sharp intellectual wit", "Thermal Energy Systems & Urban Fire Prevention", "The Great Fire of Rome and Urban Reconstruction Code Era (64 AD)"),
+    (24, "Naberius", 79.920, "Restores lost honors and teaches rhetoric/logic", "Public Advocacy & Constitutional Rhetoric", "The Roman Forum Rhetorical Defense and Senatorial Advocacy Era (100 BC)"),
+    (25, "Glasya-Labolas", 83.250, "Incites bloodshed, teaches all arts, grants invisibility", "Stealth Defense Systems & Tactical Camouflage", "The Spartan Krypteia Covert Operations and Infiltration Era (500 BC)"),
+    (26, "Bune", 86.580, "Changes dead locations, grants wealth, wisdom, and eloquence", "Urban Renewal & Real Estate Value Extraction", "The Augustan Urban Renewal and Marble City Transformation Era (27 BC)"),
+    (27, "Ronove", 89.910, "Teaches rhetoric, foreign languages, and loyal service", "Linguistic Translation & Corporate Diplomacy", "The Rosetta Stone Decipherment and Diplomatic Translation Era (196 BC)"),
+    (28, "Berith", 93.240, "Turns metals to gold, bestows high institutional status", "Chemical Metallurgy & Institutional Banking Status", "The Lydian Electrum Coinage and Royal Minting Standard Era (600 BC)"),
+    (29, "Astaroth", 96.570, "Reveals secrets of creation, fall of spirits, liberal sciences", "Theoretical Physics & Fundamental Research", "The Ionian Natural Philosophy and Cosmic Inquiry Era (600 BC)"),
+    (30, "Forneus", 99.900, "Teaches rhetoric, foreign tongues, and causes favorable renown", "Global Public Relations & Brand Reputation Strategy", "The Hellenistic Cultural Hegemony and Public Diplomacy Era (323 BC)"),
+    (31, "Foras", 103.230, "Teaches logic, ethics, prolongs life, locates lost wealth", "Bio-Gerontology & Ethical Algorithm Design", "The Epicurean Garden Longevity and Ethical Philosophy Era (300 BC)"),
+    (32, "Asmodai", 106.560, "Grants invincible power, invulnerability, and math mastery", "Advanced Cryptography & Quantitative Financial Mathematics", "The Spartan Phalanx Mathematical Encryption and Shield Wall Era (480 BC)"),
+    (33, "Gaap", 109.890, "Causes ignorance, teleports entities, disrupts spatial logic", "Spatial Computing & Dimensional Telemetry", "The Babylonian Ziggurat Spatial Navigation and Astronomical Survey Era (1700 BC)"),
+    (34, "Furfur", 113.220, "Generates thunder, lightning, storms, and reveals divine truth", "Meteorological Control & Atmospheric High-Voltage Engineering", "The Delphic Storm Mitigation and Atmospheric Ritual Era (500 BC)"),
+    (35, "Marchosias", 116.550, "Strong fighter, reliable tactical advice, ultimate endurance", "Physical Security & Tactical Operations Endurance", "The Thermopylae Last Stand Endurance and Fortification Era (480 BC)"),
+    (36, "Stolas", 119.880, "Teaches astronomy, virtues of herbs, and precious stones", "Astrophysics & Mineralogy Extraction Systems", "The Babylonian Star Cataloging and Mineral Extraction Era (600 BC)"),
+    (37, "Phenex", 123.210, "Sings wonderful melodies, teaches sciences, poetry writer", "Acoustics Engineering & Computational Literature", "The Amphion Theatrical Acoustic Design and Resonance Era (800 BC)"),
+    (38, "Halphas", 126.540, "Builds towers, supplies ammunition, and punishes enemies", "Heavy Munitions Supply Chain & Defensive Tower Construction", "The Medieval Trebuchet Siege Logistics and Fortification Era (1200 AD)"),
+    (39, "Malphas", 129.870, "Builds houses/high towers, reveals enemy desires/actions", "High-Rise Architectural Engineering & Industrial Espionage Defense", "The Great Wall of China Defensive Engineering and Counter-Espionage Era (221 BC)"),
+    (40, "Raum", 133.200, "Steals treasure, destroys cities, foretells future events", "Demolition Engineering & Strategic Risk Forecasting", "The Siege and Destruction of Carthage (146 BC)"),
+    (41, "Focalor", 136.530, "Sinks warships, commands winds/seas, inflicts drowning", "Naval Architecture & Marine Hydrodynamics", "The Battle of Salamis Trireme Naval Warfare Era (480 BC)"),
+    (42, "Vepar", 139.860, "Governs waters, guides fleets, causes putrid wound corruption", "Maritime Transport Fleet Control & Environmental Infection Prevention", "The Phoenician Maritime Fleet Navigation and Port Sanitation Era (1000 BC)"),
+    (43, "Sabnock", 143.190, "Builds high towers, inflicts gangrenous worm wounds", "Structural Fortification & Biological Containment", "The Crusader Castle Fortification and Siege Quarantine Era (1100-1300 AD)"),
+    (44, "Shax", 146.520, "Deprives sight, hearing, and intellect; steals hidden items", "Sensory Deprivation Countermeasures & Asset Security", "The Venetian Council of Ten Counter-Intelligence and Asset Secrecy Era (1310 AD)"),
+    (45, "Vine", 149.850, "Discovers hidden secrets, builds towers, collapses stone walls", "Civil Infrastructure Demolition & Underground Surveying", "The Roman Siege Engine and Wall-Breaching Engineering Era (200 BC)"),
+    (46, "Bifrons", 153.180, "Teaches astrology, geometry, herbs, and moves dead bodies", "Surveying Geometry & Hazardous Waste Management", "The Egyptian Nile Agrarian Resurveying and Necropolis Sanitation Era (2000 BC)"),
+    (47, "Uvall", 156.510, "Procures love of friends, reconciles enemies, speaks ancient tongues", "Cross-Cultural Mediation & Archaeology Restoration", "The Cyrus the Great Inter-Cultural Edict and Restoration Era (538 BC)"),
+    (48, "Haagenti", 159.840, "Makes men wise, transmutes metals into gold, turns water to wine", "Chemical Engineering & Industrial Transmutation", "The Alexandrian Alchemical Transmutation and Distillation Era (100 AD)"),
+    (49, "Crocell", 163.170, "Teaches geometry, warms bodies of water, creates roaring sounds", "Geothermal Hydro-Engineering & Computational Geometry", "The Roman Thermal Bath Engineering and Aqueduct Hydraulics Era (100 BC)"),
+    (50, "Furcas", 166.500, "Teaches philosophy, astrology, rhetoric, logic, and chiromancy", "Formal Logic Systems & Applied Philosophy", "The Aristotelian Lyceum and Formal Logic Codification Era (335 BC)"),
+    (51, "Balam", 169.830, "Grants perfect memory, foretells past/future, grants invisibility", "High-Density Data Memory Storage & Predictive Modeling", "The Simonides Method of Loci Memory Palace and Archival Era (500 BC)"),
+    (52, "Alloces", 173.160, "Teaches astronomy, liberal arts, provides excellent familiars", "Autonomous Robotics Engineering & Observational Astronomy", "The Antikythera Mechanism Astronomical Computing Era (100 BC)"),
+    (53, "Camio", 176.490, "Understands bird calls, water sounds, and translates news", "Bio-Acoustic Signal Processing & News Synthesis", "The Roman Cursus Publicus Postal and News Transmission Network Era (1 AD)"),
+    (54, "Murmur", 179.820, "Teaches philosophy, compels deceased souls to answer questions", "Historical Forensics & Philosophical Logic Inquiry", "The Delphic Necromancy and Historical Inquest Era (600 BC)"),
+    (55, "Orobas", 183.150, "Discovers divinity, prevents deception, bestows prelacies/dignities", "Anti-Fraud Compliance & Integrity Verification", "The Roman Censor Anti-Fraud Property Audit Era (443 BC)"),
+    (56, "Gremory", 186.480, "Reveals hidden treasures, bestows love, foretells future events", "Sub-Surface Geophysical Exploration & Financial Opportunity Forecasting", "The Laurion Silver Mine Vein Discovery and Prospecting Era (500 BC)"),
+    (57, "Ose", 189.810, "Teaches secret/divine sciences, changes human shape at will", "Advanced Materials Metamorphism & Molecular Biology", "The Eleusinian Mysteries Metamorphic Rite Era (1500 BC)"),
+    (58, "Amy", 193.140, "Teaches astrology, liberal arts, reveals hidden treasures", "Astronomical Data Science & Mineral Asset Valuation", "The Chaldean Star Charting and Treasure Vault Valuation Era (700 BC)"),
+    (59, "Orias", 196.470, "Teaches virtues of stars, bestows dignities, converts enemies", "Satellite Telecommunications & Executive Reconciliations", "The Persian Royal Road Telecommunication and Courier Relay Era (500 BC)"),
+    (60, "Vapula", 199.800, "Teaches manual crafts, philosophy, and advanced technical knowledge", "Precision Machining & Advanced Vocational Technical Education", "The Guild Master Artisanship and Precision Toolmaking Era (1200 AD)"),
+    (61, "Zagan", 203.130, "Makes fools wise, turns wine to water, turns metals into gold", "Cognitive Enhancement Systems & Process Optimization", "The Hermetic Alchemical Refinement and Optimization Era (300 AD)"),
+    (62, "Volac", 206.460, "Reveals location of serpents, reveals hidden gold/treasures", "Hazardous Biological Mapping & Precious Metal Geological Survey", "The Egyptian Serpent Hazard Mapping and Gold Prospecting Era (2000 BC)"),
+    (63, "Andras", 209.790, "Sows discord, destroys opponents, commands escalation", "Information Warfare & Escalation Dominance Management", "The Peloponnesian War Strategic Escalation Era (431-404 BC)"),
+    (64, "Haures", 213.120, "Destroys enemies by fire, foretells past/future, shields from fraud", "High-Temperature Thermodynamics & Fraud Prevention Systems", "The Byzantine Greek Fire Naval Defense and Pyrotechnic Era (672 AD)"),
+    (65, "Andrealphus", 216.450, "Teaches geometry, measurement, transforms men into birds", "Aerodynamic Geometry & Precision Dimensional Metrology", "The Vitruvian Architectural Proportion and Geometry Era (15 BC)"),
+    (66, "Cimejes", 219.780, "Locates lost treasures, teaches grammar, logic, rhetoric", "Natural Language Processing (NLP) & Resource Asset Discovery", "The Library of Pergamum Grammatical Codification Era (200 BC)"),
+    (67, "Amdusias", 223.110, "Commands trees to bend, provides musical instruments/orchestrations", "Forestry Engineering & Computational Acoustic Design", "The Ancient Greek Amphitheater Acoustic Resonance and Forestry Era (400 BC)"),
+    (68, "Belial", 226.440, "Distributes high titles, reconciles political power, bestows favor", "Political Cabinet Diplomacy & Public Executive Relations", "The Roman Triumvirate Political Power Distribution Era (60 BC)"),
+    (69, "Decarabia", 229.770, "Teaches virtues of birds/herbs, commands illusionary phantoms", "Agricultural Botany & Optical Holography Engineering", "The Dioscorides Botanical Pharmacopoeia and Herbal Index Era (60 AD)"),
+    (70, "Seere", 233.100, "Brings instant abundance, teleports items, completes tasks immediately", "Ultra-Low Latency Freight Delivery & Instant Asset Clearing", "The Roman Annona Grain Supply Fleet and Rapid Distribution Era (100 AD)"),
+    (71, "Dantalion", 236.430, "Reads and alters thoughts of minds, teaches all arts/sciences", "Neural Engineering & Cognitive Interface Analytics", "The Platonic Academy Cognitive Dialectic and Mental Mapping Era (387 BC)"),
+    (72, "Andromalius", 239.760, "Catches thieves, returns stolen goods, reveals hidden conspiracies", "Loss Prevention Operations & Counter-Intelligence Forensics", "The Roman Praetorian Guard and Urban Forensic Investigation Era (27 BC)")
 ]
 
 # =====================================================================
@@ -203,13 +203,27 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
     for i in range(b):
         d_idx = (node_hash + (i * 7)) % 72
         d = DEMONIC_VECTORS[d_idx]
-        mapped_bottlenecks.append(f"Friction Vector #{d[0]} {d[1]} ({d[3]}): {d[4]}")
+        mapped_bottlenecks.append({
+            "vector_id": d[0],
+            "name": d[1],
+            "power": d[3],
+            "domain": d[4],
+            "historical_era": d[5],
+            "string": f"Friction Vector #{d[0]} {d[1]} ({d[3]}): {d[4]}"
+        })
 
     mapped_protocols = []
     for i in range(p):
         a_idx = (node_hash + (i * 13)) % 72
         a = ANGELIC_PROTOCOLS[a_idx]
-        mapped_protocols.append(f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}")
+        mapped_protocols.append({
+            "protocol_id": a[0],
+            "name": a[1],
+            "chorus": a[2],
+            "power": a[4],
+            "domain": a[5],
+            "string": f"Angelic Protocol #{a[0]} {a[1]} ({a[2]}): {a[5]}"
+        })
 
     s_node = 1.05 + ((node_hash % 1400) / 1000.0)
 
@@ -222,36 +236,45 @@ def calculate_sequential_node_metrics(node_name, bottlenecks_count, protocols_co
 
     modern_delta = round(abs(modern_tti - modern_shi), 2)
 
-    legacy_tti = round(max(5.0, modern_tti * 0.62), 2)
-    legacy_shi = round(max(5.0, modern_shi * 0.42), 2)
-    legacy_delta = round(abs(legacy_tti - legacy_shi), 2)
-
     return {
         "bottlenecks_found": b,
         "protocols_applied": p,
         "stoichiometric_ratio": stoichiometric_ratio,
         "node_entropy_index": round(s_node, 3),
-        "mapped_bottlenecks": mapped_bottlenecks,
-        "mapped_protocols": mapped_protocols,
-        "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta},
-        "legacy_old": {"tti": legacy_tti, "shi": legacy_shi, "delta": legacy_delta}
+        "mapped_bottlenecks": [mb["string"] for mb in mapped_bottlenecks],
+        "mapped_bottlenecks_obj": mapped_bottlenecks,
+        "mapped_protocols": [mp["string"] for mp in mapped_protocols],
+        "mapped_protocols_obj": mapped_protocols,
+        "modern_uesp": {"tti": modern_tti, "shi": modern_shi, "delta": modern_delta}
     }
 
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
     modern = calculated_metrics["modern_uesp"]
     node_name = raw_data.get("node", "Target System Node")
 
-    bottlenecks = calculated_metrics.get("mapped_bottlenecks", raw_data.get("sweep_summary", {}).get("bottlenecks_list", []))
-    protocols = calculated_metrics.get("mapped_protocols", raw_data.get("sweep_summary", {}).get("protocols_list", []))
+    bottlenecks_obj = calculated_metrics.get("mapped_bottlenecks_obj", [])
+    primary_vector = bottlenecks_obj[0] if bottlenecks_obj else {
+        "vector_id": 1, "name": "Bael", "power": "Invisibility, wisdom, and leadership manipulation",
+        "domain": "Executive Leadership & Strategic Governance Corruption",
+        "historical_era": "The Neo-Assyrian Imperial Court Intrigues (745-612 BC)"
+    }
 
-    primary_demon = bottlenecks[0] if bottlenecks else "Friction Vector #1 Bael: Executive Leadership & Strategic Governance Corruption"
+    protocols_obj = calculated_metrics.get("mapped_protocols_obj", [])
+    primary_protocol = protocols_obj[0] if protocols_obj else {
+        "protocol_id": 1, "name": "Vehuiah", "chorus": "Seraphim",
+        "domain": "Executive Willpower & Innovation Initiation Leadership"
+    }
 
-    hist_parallel = raw_data.get("historical_parallel", f"The Peloponnesian War (431-404 BC) governed by {primary_demon}")
+    hist_parallel = raw_data.get("historical_parallel", primary_vector["historical_era"])
     hist_parallel = re.sub(r"^(Parallel Era:\s*)+", "", hist_parallel, flags=re.IGNORECASE)
 
     analysis_obj = raw_data.get("legacy_vs_modern_analysis", {})
-    old_desc = analysis_obj.get("old_way_description", f"During the historical parallel era, societies attempted to resolve friction via {primary_demon}. Because they lacked real-time structural telemetry, their old-world approach relied on manual intervention and brute force, which ultimately led to systemic decay and collapse.")
-    modern_desc = analysis_obj.get("uesp_prce_modern_way", f"To resolve the friction of {primary_demon} today in real time, the UESP modern protocol executes active stoichiometric balancing, AI-driven predictive telemetry, and a complete structural dimensional overwrite.")
+    old_desc = analysis_obj.get("old_way_description", 
+        f"During {primary_vector['historical_era']}, societies attempted to manage {primary_vector['name']} ({primary_vector['power']}) within the domain of {primary_vector['domain']}. Lacking real-time structural telemetry, their old-world approach relied on manual intervention, reactive brute force, and archaic governance, which inevitably culminated in systemic decay and structural collapse."
+    )
+    modern_desc = analysis_obj.get("uesp_prce_modern_way", 
+        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today, the UESP framework executes real-time AI predictive telemetry, stoichiometric friction balancing, and a complete structural dimensional overwrite utilizing {primary_protocol['string']}."
+    )
     
     old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
     modern_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'systemic', modern_desc, flags=re.IGNORECASE)
@@ -261,17 +284,16 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
     raw_protocol = raw_data.get("protocol", "")
     if len(raw_protocol.split()) < 100:
         raw_protocol = (
-            f"Execution Protocol Overview: The system node '{node_name}' under the active influence of {primary_demon} "
-            "requires an immediate, comprehensive structural overhaul across its operational lifecycle. By deploying active UESP protocols, "
-            "we systematically isolate and neutralize institutional friction vectors and systemic bottlenecks. This intervention bridges historical "
-            "precedents with advanced predictive analytics, ensuring long-term institutional stability and resilience.\n\n"
-            "Operational Mechanics & Alignment: Every operational layer within the enterprise architecture is cross-referenced "
-            "against absolute mathematical alignments. Rather than relying on trial-and-error reactive measures, the framework "
-            "executes a precise dimensional overwrite. Active angelic protocols restore harmony, streamline resource allocation, "
-            "and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
-            "Future-Proofing & Execution Mandate: Sustained high technical integrity (TTI) and systemic health (SHI) require "
-            "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to calculated stoichiometric "
-            "ratios and prophetic anchors, the organization secures absolute operational sovereignty and enduring systemic triumph."
+            f"Execution Protocol Overview: The system node '{node_name}' under the active influence of Friction Vector #{primary_vector['vector_id']} {primary_vector['name']} "
+            f"({primary_vector['power']}) in {primary_vector['domain']} requires an immediate, comprehensive structural overhaul across its operational lifecycle. "
+            f"By deploying active UESP protocols rooted in historical synchronization with {primary_vector['historical_era']}, we systematically isolate and neutralize "
+            "institutional friction vectors and systemic bottlenecks. This intervention bridges historical precedents with advanced predictive analytics, ensuring long-term institutional stability and resilience.\n\n"
+            f"Operational Mechanics & Alignment: Every operational layer within the enterprise architecture is cross-referenced against absolute mathematical alignments "
+            f"via {primary_protocol['string']}. Rather than relying on trial-and-error reactive measures, the framework executes a precise dimensional overwrite. "
+            "Active angelic protocols restore harmony, streamline resource allocation, and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
+            "Future-Proofing & Execution Mandate: Sustained high technical integrity (TTI) and systemic health (SHI) require continuous telemetry monitoring and "
+            "automated protocol enforcement. By adhering strictly to calculated stoichiometric ratios and prophetic anchors, the organization secures absolute "
+            "operational sovereignty and enduring systemic triumph."
         )
 
     return {
@@ -279,7 +301,7 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "tti": modern["tti"],
         "shi": modern["shi"],
         "delta": modern["delta"],
-        "historical_parallel": hist_parallel,
+        "historical_parallel": f"{primary_vector['historical_era']} governed by Friction Vector #{primary_vector['vector_id']} {primary_vector['name']} ({primary_vector['power']})",
         "era_resolution": old_desc,
         "modern_resolution": modern_desc,
         "biblical_tie": {
@@ -291,8 +313,8 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
         "protocol": raw_protocol,
         "uesp_final_protocol": raw_protocol,
         "sweep_summary": {
-            "bottlenecks_list": bottlenecks,
-            "protocols_list": protocols
+            "bottlenecks_list": calculated_metrics['mapped_bottlenecks'],
+            "protocols_list": calculated_metrics['mapped_protocols']
         },
         "legacy_vs_modern_analysis": {
             "old_way_description": old_desc,
@@ -339,9 +361,9 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Engine. Provide precise, explicit comparative resolutions. "
-                    "For 'old_way_description', explain how the historical parallel era attempted to solve the specific friction vector/demon back then using old-world manual methods. "
-                    "For 'uesp_prce_modern_way', provide the exact real-time UESP solution required today using active mathematical overwrites and angelic protocols. "
+                    "You are the UESP PRCE Engine. Provide precise comparative resolutions mapped directly to the assigned Demonic Friction Vector and Angelic Protocol. "
+                    "For 'old_way_description', detail how the specific historical parallel era managed or failed to resolve the assigned friction vector. "
+                    "For 'uesp_prce_modern_way', detail the exact real-time UESP stoichiometric overwrite and angelic protocol required today. "
                     "Output strictly valid JSON."
                 )
             },
@@ -355,16 +377,7 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
     try:
         raw_data = clean_and_parse_json(content)
     except Exception:
-        primary_demon = calculated_metrics['mapped_bottlenecks'][0]
-        raw_data = {
-            "node": "System Node",
-            "historical_parallel": f"The Peloponnesian War (431-404 BC) governed by {primary_demon}",
-            "legacy_vs_modern_analysis": {
-                "old_way_description": f"In the historical parallel era, societies tackled {primary_demon} using crude manual labor and reactive conflict, leading to eventual institutional collapse.",
-                "uesp_prce_modern_way": f"Today, UESP resolves {primary_demon} in real time through predictive AI telemetry, stoichiometric friction balancing, and active dimensional overwrites."
-            },
-            "protocol": content if len(content) > 100 else "Comprehensive execution protocol for system integrity."
-        }
+        raw_data = {}
 
     final_payload = synthesize_hybrid_payload(raw_data, calculated_metrics)
     return model_name, final_payload
@@ -381,24 +394,25 @@ def execute_scan():
     protocols_count = int(os.getenv("PROTOCOL_COUNT", "12"))
 
     calculated_metrics = calculate_sequential_node_metrics(node, bottlenecks_count, protocols_count)
-    primary_demon = calculated_metrics['mapped_bottlenecks'][0]
-    primary_protocol = calculated_metrics['mapped_protocols'][0]
+    primary_vector = calculated_metrics['mapped_bottlenecks_obj'][0]
+    primary_protocol = calculated_metrics['mapped_protocols_obj'][0]
     
     prompt = f"""
     Perform an exhaustive UESP PRCE diagnostic sweep for TARGET NODE: {node}.
     
-    CALCULATED ENTITY & METRIC SPECTRUM:
-    - Primary Friction Vector / Demon: {primary_demon}
-    - Primary Angelic Protocol: {primary_protocol}
+    CALCULATED CHRONOS SPECTRUM & ENTITY MAPPINGS:
+    - Primary Demonic Friction Vector: {primary_vector['string']}
+    - Historical Parallel Era: {primary_vector['historical_era']}
+    - Primary Angelic Protocol: {primary_protocol['string']}
     - Stoichiometric Friction Ratio: {calculated_metrics['stoichiometric_ratio']}
     - Calculated TTI: {calculated_metrics['modern_uesp']['tti']}
     - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
     - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
 
     STRICT INSTRUCTIONS:
-    1. 'historical_parallel': Provide a distinct historical event title and date range (DO NOT include the literal text 'Parallel Era:' in the title string) that directly mirrors the friction of {primary_demon}.
-    2. 'old_way_description': Explicitly state how the society in the historical parallel era attempted to achieve a solution or managed (or failed to manage) {primary_demon} back then using old-world methods.
-    3. 'uesp_prce_modern_way': Detail specifically what UESP modern resolution is required to do today for {primary_demon} using active mathematical overwrites, stoichiometric balancing, and {{primary_protocol}}.
+    1. 'historical_parallel': Output '{primary_vector['historical_era']} governed by {primary_vector['string']}'.
+    2. 'old_way_description': Explicitly explain how society during {primary_vector['historical_era']} attempted to resolve or managed {primary_vector['string']} using old-world methods.
+    3. 'uesp_prce_modern_way': Explicitly explain what UESP modern resolution is required to do today for {primary_vector['string']} using active mathematical overwrites, stoichiometric balancing, and {primary_protocol['string']}.
     4. 'protocol': Provide an extensive, deep, multi-paragraph executive protocol outlining operational mechanics, systemic forensics, and execution mandates.
 
     DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
@@ -406,20 +420,14 @@ def execute_scan():
     OUTPUT STRICTLY IN THIS JSON FORMAT:
     {{
       "node": "{node}",
-      "historical_parallel": "The Peloponnesian War (431-404 BC) governed by {primary_demon}",
+      "historical_parallel": "{primary_vector['historical_era']} governed by {primary_vector['string']}",
       "sweep_summary": {{
         "bottlenecks_list": {json.dumps(calculated_metrics['mapped_bottlenecks'])},
-        "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])},
-        "mapped_bottlenecks": {json.dumps(calculated_metrics['mapped_bottlenecks'])},
-        "mapped_protocols": {json.dumps(calculated_metrics['mapped_protocols'])}
+        "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])}
       }},
       "legacy_vs_modern_analysis": {{
-        "old_way_description": "In the historical era, society addressed {primary_demon} through manual treaties and reactive conflict...",
-        "uesp_prce_modern_way": "Today, UESP resolves {primary_demon} through real-time AI telemetry, stoichiometric balancing, and active dimensional overwrites..."
-      }},
-      "biblical_tie": {{
-        "verse": "Isaiah 58:12",
-        "context": "Direct prophetic explanation of scripture resonance..."
+        "old_way_description": "During {primary_vector['historical_era']}, societies attempted to address {primary_vector['name']} through...",
+        "uesp_prce_modern_way": "Today, UESP resolves {primary_vector['name']} in real time through predictive AI telemetry, stoichiometric balancing, and {primary_protocol['name']}..."
       }},
       "protocol": "Extensive multi-paragraph executive protocol detailing operational alignment, structural forensics, and execution steps...",
       "session_id": "{session_id}"
@@ -458,24 +466,6 @@ def execute_scan():
         raw_output = synthesize_hybrid_payload({
             "node": node,
             "session_id": session_id,
-            "historical_parallel": f"The Peloponnesian War (431-404 BC) governed by {primary_demon}",
-            "legacy_vs_modern_analysis": {
-                "old_way_description": f"In the historical parallel era, societies tackled {primary_demon} using crude manual labor and reactive conflict, leading to eventual systemic collapse.",
-                "uesp_prce_modern_way": f"Today, UESP resolves {primary_demon} in real time through predictive AI telemetry, stoichiometric balancing, and active dimensional overwrites using {primary_protocol}."
-            },
-            "protocol": (
-                f"Execution Protocol Overview: The system node '{node}' under the influence of {primary_demon} requires an immediate, comprehensive "
-                "structural overhaul across its operational lifecycle. By deploying active UESP protocols, we systematically "
-                "isolate and neutralize institutional friction vectors and systemic bottlenecks. This intervention bridges historical "
-                "precedents with advanced predictive analytics, ensuring long-term institutional stability and resilience.\n\n"
-                f"Operational Mechanics & Alignment: Every operational layer within the enterprise architecture under {primary_protocol} is cross-referenced "
-                "against absolute mathematical alignments. Rather than relying on trial-and-error reactive measures, the framework "
-                "executes a precise dimensional overwrite. Active angelic protocols restore harmony, streamline resource allocation, "
-                "and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
-                "Future-Proofing & Execution Mandate: Sustained high technical integrity and systemic health require "
-                "continuous telemetry monitoring and automated protocol enforcement. By adhering strictly to calculated stoichiometric "
-                "ratios and prophetic anchors, the organization secures absolute operational sovereignty and enduring systemic triumph."
-            )
         }, calculated_metrics)
 
     raw_output['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
