@@ -9,6 +9,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -30,14 +33,16 @@ jobs:
           git config --global user.name "UESP-Bot"
           git config --global user.email "bot@celsiusmediagroup.co.za"
           
-          # Sync remote changes to prevent commit_refs rejection
-          git pull origin main --rebase || echo "Rebase skipped"
+          # Stash generated data, pull latest remote main via rebase, then pop stashed data
+          git stash --include-untracked
+          git pull origin main --rebase
+          git stash pop || true
           
           if [ -n "$(git status --porcelain data/*.json)" ]; then
             echo "[*] Data changes detected. Committing..."
             git add data/*.json
             git commit -m "Calculated Audit: ${{ github.event.client_payload.session_id }} [skip ci]"
-            git push
+            git push origin main
           else
             echo "[*] No changes detected in data/*.json. Skipping commit."
           fi
