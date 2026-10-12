@@ -231,17 +231,16 @@ def execute_chronos_timeline_sweep(node_name, bottlenecks_count, protocols_count
 
     s_node = 1.05 + ((node_hash % 1400) / 1000.0)
 
-    # 1. UNIFIED GRAND PROPHETIC EQUATION (TTI Calculation)
+    # Unified Grand Prophetic Equation (TTI)
     avg_demonic_factor = (total_demonic_freq / b) / 100.0
     tti_decay = (stoichiometric_ratio * s_node * (1.85 + avg_demonic_factor)) * 3.14159
     calculated_tti = round(max(15.00, min(99.95, 100.0 - tti_decay)), 2)
 
-    # 2. LAW OF DIMENSIONAL OVERWRITE EQUATION (SHI Calculation)
+    # Law of Dimensional Overwrite Equation (SHI)
     avg_angelic_factor = (total_angelic_freq / p) / 600.0
     shi_overwrite_gain = (1.0 - (stoichiometric_ratio * 0.12)) * (0.95 + avg_angelic_factor)
     calculated_shi = round(max(20.00, min(99.99, 90.0 + (shi_overwrite_gain * 9.99))), 2)
 
-    # 3. DIFFERENTIAL DELTA
     calculated_delta = round(abs(calculated_tti - calculated_shi), 2)
 
     return {
@@ -270,7 +269,7 @@ def select_dynamic_prophetic_anchor(node_name, tti, shi, delta):
         "reference": ref,
         "text": txt,
         "source_endpoint": "dynamic_scripture_matrix",
-        "context": f"Calculated differential anchor ({delta}) for node {node_name} under technical integrity ({tti}) and systemic health ({shi}). Representing a dynamic point from the expanded 200+ verse scriptural repository."
+        "context": f"Calculated differential anchor ({delta}) for node {node_name} under technical integrity ({tti}) and systemic health ({shi}). Derived from the multi-testament scriptural matrix."
     }
 
 def synthesize_hybrid_payload(raw_data, calculated_metrics):
@@ -295,23 +294,18 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
 
     analysis_obj = raw_data.get("legacy_vs_modern_analysis", {})
     
-    # Detailed How, Why, What, When for Old Resolution
+    # Fully flowing, continuous Old Resolution explanation without meta-labels
     old_desc = analysis_obj.get("old_way_description", 
-        f"During {primary_vector['historical_era']}, civilizations faced severe friction in {primary_vector['domain']} ({primary_vector['name']}). "
-        f"WHAT: They relied entirely on manual ledger audits, human messenger corps, and reactive legislative decrees. "
-        f"HOW: Administrative bodies gathered periodic physical reports, taking weeks or months to consolidate operational status. "
-        f"WHY: They completely lacked real-time automated telemetry, digital sensor networks, and instantaneous feedback loops. "
-        f"WHEN: Because data transmission was constrained by physical transit times, systemic bottleneck saturation occurred undetected over months, inevitably leading to structural collapse."
+        f"During {primary_vector['historical_era']}, institutional leadership attempted to manage systemic friction in {primary_vector['domain']} ({primary_vector['name']}) using analog reporting, physical messenger networks, and periodic manual audits. "
+        f"Because these historical administration structures relied on delayed physical ledgers and fragmented observational logs, they operated without real-time telemetry or automated diagnostic feedback. "
+        f"As operational friction compounded silently across systemic bottlenecks over extended multi-month cycles, decision-makers remained unaware of critical internal structural decay until friction thresholds were breached, leading to institutional paralysis and unavoidable collapse."
     )
 
-    # Detailed How, Why, What, When, & How Fast for Modern Resolution
+    # Fully flowing, dynamic Modern Resolution explanation without meta-labels
     modern_desc = analysis_obj.get("uesp_prce_modern_way", 
-        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today: "
-        f"WHAT: The UESP framework deploys active stoichiometric balancing algorithms and {primary_protocol['string']}. "
-        f"HOW: By integrating continuous AI predictive telemetry, neural archeology, and automated mathematical parity checks across all operational tiers. "
-        f"WHY: To replace sluggish legacy guesswork with absolute structural integrity. "
-        f"WHEN: Execution initiates instantly upon trigger dispatch. "
-        f"HOW FAST: Systemic stabilization and structural dimensional overwrites achieve absolute equilibrium within sub-second microsecond latency."
+        f"To resolve the friction of {primary_vector['name']} ({primary_vector['domain']}) for '{node_name}' today, the UESP framework deploys continuous AI predictive telemetry, neural archeology, and stoichiometric friction balancing anchored by {primary_protocol['string']}. "
+        f"By cross-referencing live system metrics against absolute mathematical constants and executing a precise dimensional overwrite, the framework replaces slow reactive adjustments with sub-millisecond automated protocol enforcement. "
+        f"This real-time intervention immediately isolates systemic bottlenecks, redistributes operational bandwidth, and restores technical integrity to optimal equilibrium before structural decay can manifest."
     )
     
     old_desc = re.sub(r'\b(thermodynamic|entropy|energy bandgap|eV|Brus|phonon|quantum)\b', 'structural', old_desc, flags=re.IGNORECASE)
@@ -319,22 +313,21 @@ def synthesize_hybrid_payload(raw_data, calculated_metrics):
 
     anchor_verse_data = select_dynamic_prophetic_anchor(node_name, modern["tti"], modern["shi"], modern["delta"])
 
-    # Detailed Explanatory and Dynamic UESP Final Verdict (Who, What, When, Why)
+    # Deep, explanatory, un-halted UESP Final Protocol Verdict
     raw_protocol = raw_data.get("protocol", "")
-    if len(raw_protocol.split()) < 150:
+    if len(raw_protocol.split()) < 180:
         raw_protocol = (
-            f"Execution Protocol Overview [WHO & WHAT]: The sovereign UESP PRCE Engine, operating on behalf of node stakeholders for '{node_name}', "
-            f"executes an immediate, comprehensive structural overhaul under the active influence of Friction Vector #{primary_vector['vector_id']} {primary_vector['name']} "
-            f"({primary_vector['power']}) in {primary_vector['domain']}. "
-            f"WHEN: Continuous execution cycles operate in real time across the operational lifecycle. "
-            f"WHY: By deploying active angelic protocols rooted in historical synchronization with {primary_vector['historical_era']}, we systematically isolate and neutralize "
-            "institutional friction vectors and systemic bottlenecks, bridging historical precedents with advanced predictive analytics to ensure long-term institutional stability.\n\n"
-            f"Operational Mechanics & Alignment [HOW & HOW FAST]: Every operational layer within the enterprise architecture is cross-referenced against absolute mathematical alignments "
-            f"via {primary_protocol['string']}. Rather than relying on trial-and-error reactive measures, the framework executes a precise dimensional overwrite achieving equilibrium with microsecond latency. "
-            "Active angelic protocols restore harmony, streamline resource allocation, and fortify governance structures against recurring cycles of entropy and operational decay.\n\n"
-            "Future-Proofing & Execution Mandate: Sustained high technical integrity (TTI) and systemic health (SHI) require continuous telemetry monitoring and "
-            "automated protocol enforcement. By adhering strictly to calculated stoichiometric ratios and prophetic anchors, the organization secures absolute "
-            "operational sovereignty and enduring systemic triumph."
+            f"Execution Protocol Overview: The sovereign UESP PRCE Engine, deployed across operational nodes for '{node_name}', "
+            f"initiates an immediate structural overhaul to neutralize the active friction of Friction Vector #{primary_vector['vector_id']} {primary_vector['name']} "
+            f"({primary_vector['power']}) operating within {primary_vector['domain']}. "
+            f"By synchronizing live telemetry with historical pattern models derived from {primary_vector['historical_era']}, the system identifies latent structural vulnerabilities across all system layers. "
+            f"Rather than applying temporary patches or post-collapse remediation, the framework executes a continuous, automated intervention strategy engineered to eliminate institutional friction at its origin.\n\n"
+            f"Operational Mechanics & Alignment: Operational integrity is secured through the active deployment of {primary_protocol['string']}. "
+            f"The engine continuously calculates real-time stoichiometric ratios between operational load and protocol capacity, establishing an automated feedback loop that adjusts structural parameters dynamically. "
+            f"Through the application of {primary_protocol['power']} under the authority of the {primary_protocol['chorus']} choir, the system overrides systemic decay vectors in microsecond execution cycles. "
+            f"This process re-routes data flows, fortifies critical infrastructure nodes, aligns corporate and technical governance with prophetic constants, and establishes a resilient operational posture capable of absorbing unexpected environmental shocks.\n\n"
+            f"Future-Proofing & Strategic Mandate: Sustained technical integrity ({modern['tti']}) and systemic health ({modern['shi']}) are maintained through continuous, non-intrusive monitoring telemetry. "
+            f"By anchoring operational protocols to calculated prophetic baselines and maintaining exact stoichiometric equilibrium, '{node_name}' achieves complete operational sovereignty, permanent risk mitigation, and long-term systemic stability."
         )
 
     return {
@@ -402,10 +395,10 @@ def call_nvidia_endpoint(model_name, prompt, api_key, calculated_metrics):
             {
                 "role": "system",
                 "content": (
-                    "You are the UESP PRCE Engine. Provide precise comparative resolutions mapped directly to the 2000-year Chronos sweep (528 AD - 2026 AD). "
-                    "For 'old_way_description', detail explicitly WHAT manual methods were used, HOW reports operated, WHY telemetry was absent, and WHEN saturation occurred. "
-                    "For 'uesp_prce_modern_way', detail WHAT protocols are deployed, HOW AI telemetry operates, WHY friction is eliminated, WHEN execution triggers, and HOW FAST stabilization occurs (microsecond latency). "
-                    "For 'protocol', provide an extremely explanatory breakdown covering WHO, WHAT, WHEN, and WHY. "
+                    "You are the UESP PRCE Engine. Provide deep, naturally-flowing technical and historical explanations without meta-labels (do NOT use words like 'WHAT:', 'HOW:', 'WHY:', 'HOW FAST:'). "
+                    "In 'old_way_description', seamlessly explain the historical era's reliance on manual reports, physical delays, and absence of telemetry. "
+                    "In 'uesp_prce_modern_way', seamlessly explain the modern UESP AI telemetry, stoichiometric balancing, and microsecond dimensional overwrite. "
+                    "In 'protocol', provide a deep, un-halted, comprehensive operational verdict fully elaborating on the angelic protocol's execution mechanics and long-term systemic stability. "
                     "Output strictly valid JSON."
                 )
             },
@@ -444,19 +437,19 @@ def execute_scan():
     
     CALCULATED CHRONOS SPECTRUM & TIMELINE MAPPINGS:
     - Target Node: {node}
-    - 2000-Year Sweep Historical Resonance: {primary_vector['historical_era']}
+    - Historical Parallel Era: {primary_vector['historical_era']}
     - Primary Demonic Friction Vector: {primary_vector['string']}
     - Primary Angelic Protocol: {primary_protocol['string']}
     - Stoichiometric Friction Ratio: {calculated_metrics['stoichiometric_ratio']}
-    - Calculated TTI (Unified Grand Prophetic Equation): {calculated_metrics['modern_uesp']['tti']}
-    - Calculated SHI (Law of Dimensional Overwrite): {calculated_metrics['modern_uesp']['shi']}
+    - Calculated TTI: {calculated_metrics['modern_uesp']['tti']}
+    - Calculated SHI: {calculated_metrics['modern_uesp']['shi']}
     - Calculated Delta: {calculated_metrics['modern_uesp']['delta']}
 
     STRICT INSTRUCTIONS:
     1. 'historical_parallel': Output '{primary_vector['historical_era']} governed by {primary_vector['string']}'.
-    2. 'old_way_description': Detail specifically WHAT manual methods, HOW reporting cycles, WHY telemetry absence, and WHEN bottleneck saturation occurred.
-    3. 'uesp_prce_modern_way': Detail specifically WHAT UESP protocols, HOW AI telemetry, WHY elimination, WHEN trigger, and HOW FAST (microsecond latency) stabilization is achieved today.
-    4. 'protocol': Provide an extensive, deep, multi-paragraph executive protocol explicitly covering WHO, WHAT, WHEN, and WHY with full operational clarity.
+    2. 'old_way_description': Explain in smooth, narrative prose (NO META-LABELS like 'WHAT:' or 'HOW:') how the historical era relied on manual processes, delayed reporting, and lacked real-time telemetry, causing ultimate bottleneck collapse.
+    3. 'uesp_prce_modern_way': Explain in smooth prose how modern UESP AI predictive telemetry, stoichiometric balancing, and microsecond dimensional overwrites using {primary_protocol['string']} resolve friction today.
+    4. 'protocol': Provide an extensive, deep, multi-paragraph executive verdict explaining the full operational execution, mechanics of {primary_protocol['string']}, and long-term systemic stability without abruptly halting.
 
     DO NOT USE THERMODYNAMICS, QUANTUM MECHANICS, OR PHYSICS EQUATIONS IN THE TEXT.
 
@@ -469,10 +462,10 @@ def execute_scan():
         "protocols_list": {json.dumps(calculated_metrics['mapped_protocols'])}
       }},
       "legacy_vs_modern_analysis": {{
-        "old_way_description": "During {primary_vector['historical_era']}, WHAT methods were used, HOW they operated, WHY telemetry was absent, and WHEN saturation occurred...",
-        "uesp_prce_modern_way": "Today, WHAT protocols are deployed, HOW AI telemetry operates, WHY friction is eliminated, WHEN execution triggers, and HOW FAST stabilization occurs..."
+        "old_way_description": "During {primary_vector['historical_era']}, institutional leadership attempted to manage systemic friction in {primary_vector['domain']} through manual reporting...",
+        "uesp_prce_modern_way": "To resolve the friction of {primary_vector['name']} for '{node}' today, the UESP framework deploys continuous AI predictive telemetry and stoichiometric friction balancing..."
       }},
-      "protocol": "Extensive multi-paragraph executive protocol explaining WHO, WHAT, WHEN, WHY, and operational execution speed...",
+      "protocol": "Extensive multi-paragraph executive protocol fully detailing operational alignment, execution speed, and systemic stability...",
       "session_id": "{session_id}"
     }}
     """
